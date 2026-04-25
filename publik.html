@@ -90,16 +90,42 @@ tr:hover td{background:#fafbff}
 /* Footer */
 .footer{text-align:center;padding:20px;font-size:11px;color:#bbb;margin-top:8px}
 
+/* Preview button */
+.btn-preview-pub{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:#f0f4ff;color:#3a6bff;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;text-decoration:none}
+.btn-preview-pub:hover{background:#dce8ff}
+.btn-preview-pub svg{width:11px;height:11px;fill:#3a6bff}
+
+/* Modal Preview */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal-box{background:white;border-radius:14px;width:100%;max-width:860px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-top{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #f0f2f5}
+.modal-top h3{font-size:13px;font-weight:700;color:#1a1a2e;flex:1;margin-right:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal-close-btn{width:30px;height:30px;border:none;background:#f4f6f9;border-radius:7px;cursor:pointer;font-size:16px;color:#666;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-close-btn:hover{background:#e8ecf0}
+.modal-frame{flex:1;overflow:hidden}
+.modal-frame iframe{width:100%;height:100%;border:none;min-height:500px}
+.modal-footer{padding:12px 18px;border-top:1px solid #f0f2f5;display:flex;justify-content:flex-end;gap:8px}
+
 /* Responsive */
 @media(max-width:640px){
   .header-top{padding:12px 16px}
-  .toolbar{padding:10px 16px}
+  .toolbar{padding:10px 16px;gap:8px}
   .content{padding:14px 16px}
   .stats-row{grid-template-columns:1fr 1fr;gap:8px}
+  /* Sembunyikan kolom Tanggal, Format, Ukuran — tapi BUKAN Unduh & Preview */
   th:nth-child(3),td:nth-child(3),
   th:nth-child(4),td:nth-child(4),
   th:nth-child(5),td:nth-child(5){display:none}
   .table-header{flex-direction:column;align-items:flex-start;gap:4px}
+  /* Aksi tombol di mobile: stack vertikal */
+  .action-cell{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+  .btn-unduh,.btn-preview-pub{font-size:11px;padding:5px 10px}
+  /* Nama dokumen wrap di mobile */
+  .doc-title{font-size:11.5px;word-break:break-word;max-width:160px}
+  .row-name{gap:7px}
+  .filter-wrap{width:100%}
+  .filter-wrap select{flex:1}
 }
 </style>
 </head>
@@ -191,7 +217,7 @@ tr:hover td{background:#fafbff}
 
 <script>
 const GD_FILE_ID = '1-_aSieRrOe_H9hIQTGIyz6mLm8Pp3iPl';
-const GD_API_KEY = 'AIzaSyCpmYjXP3opmZhgC1r7BzTZWP9S7e1dMvM';
+const GD_API_KEY = 'GANTI_API_KEY'; // Google Drive API Key (bukan OAuth)
 
 const CATS = {
   'sertifikat':'Sertifikat',
@@ -265,6 +291,10 @@ function renderTable() {
     const fmt   = (d.fmt || 'PDF').toUpperCase();
     const cls   = fmt === 'DOCX' ? 'docx' : fmt === 'XLSX' ? 'xlsx' : '';
     const badge = '<span class="badge ' + (BADGE[d.cat]||'b-gray') + '">' + (CATS[d.cat]||d.cat) + '</span>';
+    const nameEsc = d.name.replace(/'/g, "\'");
+    const preview = d.driveFileId
+      ? '<button class="btn-preview-pub" onclick="openPreview(\''+d.driveFileId+'\',\''+nameEsc+'\')"><svg viewBox=\"0 0 24 24\"><path d=\"M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z\"/></svg>Preview</button>'
+      : '';
     const unduh = d.driveFileId
       ? '<a class="btn-unduh" href="https://drive.google.com/uc?export=download&id=' + d.driveFileId + '" target="_blank"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5z"/></svg>Unduh</a>'
       : '<span class="btn-unduh disabled">Tidak tersedia</span>';
@@ -274,12 +304,12 @@ function renderTable() {
       + '<td>' + (d.date||'-') + '</td>'
       + '<td>' + fmt + '</td>'
       + '<td>' + (d.size||'-') + '</td>'
-      + '<td>' + unduh + '</td>'
+      + '<td><div class="action-cell">' + preview + unduh + '</div></td>'
       + '</tr>';
   }).join('');
 
   document.getElementById('table-body').innerHTML =
-    '<table><thead><tr><th>Nama Dokumen</th><th>Kategori</th><th>Tanggal</th><th>Format</th><th>Ukuran</th><th>Unduh</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    '<table><thead><tr><th>Nama Dokumen</th><th>Kategori</th><th>Tanggal</th><th>Format</th><th>Ukuran</th><th>Aksi</th></tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
 // ── Update stat cards ──
@@ -290,6 +320,27 @@ function updateStats() {
   const cnt   = DOCS.filter(function(d){ return d.date && d.date.startsWith(bulan); }).length;
   document.getElementById('stat-month').textContent = cnt;
 }
+
+// ── Preview Dokumen ──
+function openPreview(driveFileId, docName) {
+  document.getElementById('preview-title').textContent = docName;
+  // Google Drive viewer bisa preview PDF, DOCX, XLSX, gambar
+  const viewerUrl = 'https://drive.google.com/file/d/' + driveFileId + '/preview';
+  document.getElementById('preview-iframe').src = viewerUrl;
+  document.getElementById('preview-unduh-btn').href =
+    'https://drive.google.com/uc?export=download&id=' + driveFileId;
+  document.getElementById('modal-preview').classList.add('open');
+}
+
+function closePreview() {
+  document.getElementById('modal-preview').classList.remove('open');
+  document.getElementById('preview-iframe').src = '';
+}
+
+// Tutup modal saat klik di luar
+document.addEventListener('click', function(e) {
+  if (e.target === document.getElementById('modal-preview')) closePreview();
+});
 
 // ── Load data dari Drive (tanpa OAuth, pakai API Key) ──
 async function loadDocs() {
@@ -315,5 +366,23 @@ async function loadDocs() {
 
 loadDocs();
 </script>
+<!-- MODAL PREVIEW -->
+<div class="modal-overlay" id="modal-preview">
+  <div class="modal-box">
+    <div class="modal-top">
+      <h3 id="preview-title">Preview Dokumen</h3>
+      <button class="modal-close-btn" onclick="closePreview()">✕</button>
+    </div>
+    <div class="modal-frame">
+      <iframe id="preview-iframe" src="" allowfullscreen></iframe>
+    </div>
+    <div class="modal-footer">
+      <a id="preview-unduh-btn" href="#" target="_blank" class="btn-unduh">
+        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5z"/></svg>
+        Unduh Dokumen
+      </a>
+    </div>
+  </div>
+</div>
 </body>
 </html>
