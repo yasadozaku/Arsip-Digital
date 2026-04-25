@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arsip Digital — Sistem Manajemen Dokumen</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:#f4f6f9;color:#1a1a2e;min-height:100vh}
+  a{text-decoration:none;color:inherit}
+
+  /* Sidebar */
+  .layout{display:flex;min-height:100vh}
+  .sidebar{width:240px;background:#0f3460;color:white;display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:50}
+  .sidebar-logo{padding:20px 16px 18px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:11px}
+  .sidebar-logo .icon{width:38px;height:38px;background:#e94560;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(233,69,96,0.35)}
+  .sidebar-logo .icon svg{width:21px;height:21px;fill:white}
+  .sidebar-logo .logo-text h1{font-size:13.5px;font-weight:800;color:white;line-height:1.2;letter-spacing:-.01em}
+  .sidebar-logo .logo-text p{font-size:9.5px;color:rgba(255,255,255,0.45);margin-top:2px;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
+  .sidebar-nav{padding:16px 12px;flex:1}
+  .nav-label{font-size:10px;font-weight:600;color:rgba(255,255,255,0.4);letter-spacing:.08em;text-transform:uppercase;padding:0 8px;margin:12px 0 6px}
+  .nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.75);transition:all .15s;margin-bottom:2px;border:none;background:transparent;width:100%;text-align:left}
+  .nav-item:hover{background:rgba(255,255,255,0.1);color:white}
+  .nav-item.active{background:#e94560;color:white}
+  .nav-item svg{width:15px;height:15px;fill:currentColor;flex-shrink:0}
+  .nav-count{margin-left:auto;background:rgba(255,255,255,0.15);border-radius:20px;font-size:10px;padding:2px 7px;font-weight:500}
+  .nav-item.active .nav-count{background:rgba(255,255,255,0.25)}
+
+  /* Main */
+  .main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+  .topbar{background:white;padding:16px 28px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #e8ecf0;position:sticky;top:0;z-index:40}
+  .topbar h2{font-size:16px;font-weight:600;color:#1a1a2e;flex:1}
+  .search-wrap{display:flex;align-items:center;gap:8px;background:#f4f6f9;border:1px solid #e8ecf0;border-radius:8px;padding:8px 14px;width:280px}
+  .search-wrap svg{width:15px;height:15px;fill:#999;flex-shrink:0}
+  .search-wrap input{border:none;background:transparent;font-size:13px;color:#1a1a2e;width:100%;outline:none}
+  .search-wrap input::placeholder{color:#aaa}
+  .topbar-right{display:flex;align-items:center;gap:10px}
+  .year-select{padding:8px 12px;border:1px solid #e8ecf0;border-radius:8px;background:white;font-size:13px;color:#444;cursor:pointer;outline:none}
+  .btn-add{display:flex;align-items:center;gap:6px;padding:8px 16px;background:#e94560;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
+  .btn-add:hover{background:#c73652}
+  .btn-add svg{width:14px;height:14px;fill:white}
+
+  /* Content */
+  .content{padding:24px 28px;flex:1}
+
+  /* Stats */
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+  .stat-card{background:white;border-radius:12px;padding:18px 20px;border:1px solid #e8ecf0}
+  .stat-card .label{font-size:12px;color:#888;margin-bottom:6px}
+  .stat-card .number{font-size:26px;font-weight:700;color:#1a1a2e}
+  .stat-card .sub{font-size:11px;color:#aaa;margin-top:4px}
+  .stat-card.accent{background:linear-gradient(135deg,#0f3460,#16213e);border:none}
+  .stat-card.accent .label,.stat-card.accent .sub{color:rgba(255,255,255,0.6)}
+  .stat-card.accent .number{color:white}
+
+  /* Table card */
+  .card{background:white;border-radius:12px;border:1px solid #e8ecf0;overflow:hidden}
+  .card-head{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between}
+  .card-head h3{font-size:14px;font-weight:600;color:#1a1a2e}
+  .card-head p{font-size:12px;color:#999}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{padding:11px 16px;text-align:left;font-size:11px;font-weight:600;color:#888;background:#fafbfc;border-bottom:1px solid #f0f0f0;text-transform:uppercase;letter-spacing:.04em}
+  td{padding:13px 16px;border-bottom:1px solid #f7f7f7;color:#333;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#fafbff}
+  .doc-name{display:flex;align-items:center;gap:10px}
+  .doc-icon{width:32px;height:40px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+  .doc-icon.pdf{background:#fff0f0;color:#e94560;border:1px solid #f5c6cc}
+  .doc-icon.docx{background:#edf4ff;color:#185fa5;border:1px solid #bcd4f5}
+  .doc-icon.xlsx{background:#edfaf3;color:#0f6e56;border:1px solid #9fe1cb}
+  .doc-name-text{font-size:13px;font-weight:500;color:#1a1a2e;line-height:1.4}
+  .doc-name-num{font-size:11px;color:#aaa}
+  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
+  .b-amber{background:#faeeda;color:#633806}
+  .b-blue{background:#e6f1fb;color:#0c447c}
+  .b-teal{background:#e1f5ee;color:#085041}
+  .b-purple{background:#eeedfe;color:#3c3489}
+  .b-coral{background:#faece7;color:#712b13}
+  .b-pink{background:#fbeaf0;color:#72243e}
+  .b-red{background:#fcebeb;color:#791f1f}
+  .b-green{background:#eaf3de;color:#27500a}
+  .b-gray{background:#f1efe8;color:#444441}
+  .actions{display:flex;gap:6px}
+  .btn-sm{padding:5px 11px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;border:1px solid #e8ecf0;background:white;color:#444}
+  .btn-sm:hover{background:#f4f6f9}
+  .btn-sm svg{width:12px;height:12px;fill:currentColor}
+  .btn-dl{background:#0f3460;color:white;border-color:#0f3460}
+  .btn-dl:hover{background:#0a2540}
+  .btn-del{background:#fff0f0;color:#c0392b;border-color:#f5c6cc}
+  .btn-del:hover{background:#c0392b;color:white;border-color:#c0392b}
+  .btn-edit{background:#fff8e6;color:#b06a00;border-color:#f5d98b}
+  .btn-edit:hover{background:#b06a00;color:white;border-color:#b06a00}
+  .empty-row td{text-align:center;padding:40px;color:#aaa;font-size:14px}
+
+  /* Modal */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center}
+  .modal-bg.open{display:flex}
+  .modal{background:white;border-radius:16px;width:92%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+  .modal-head{padding:20px 24px 16px;border-bottom:1px solid #f0f0f0;display:flex;align-items:flex-start;gap:12px}
+  .modal-head-info{flex:1}
+  .modal-head h3{font-size:15px;font-weight:600;color:#1a1a2e;line-height:1.4}
+  .modal-head p{font-size:12px;color:#aaa;margin-top:3px}
+  .modal-close{width:30px;height:30px;border:1px solid #e8ecf0;border-radius:8px;background:transparent;cursor:pointer;font-size:18px;color:#888;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+  .modal-close:hover{background:#f4f6f9}
+  .modal-preview{margin:20px 24px;background:#f4f6f9;border-radius:12px;border:1px solid #e8ecf0;padding:32px;text-align:center}
+  .preview-file-icon{width:64px;height:80px;border-radius:6px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .preview-file-icon.pdf{background:white;color:#e94560;border:1.5px solid #f5c6cc}
+  .preview-file-icon.docx{background:white;color:#185fa5;border:1.5px solid #bcd4f5}
+  .preview-file-icon.xlsx{background:white;color:#0f6e56;border:1.5px solid #9fe1cb}
+  .preview-name{font-size:14px;font-weight:600;color:#1a1a2e;margin-bottom:6px}
+  .preview-sub{font-size:12px;color:#aaa}
+  .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 24px 20px}
+  .meta-item{background:#fafbfc;border:1px solid #f0f0f0;border-radius:10px;padding:12px 14px}
+  .meta-label{font-size:11px;color:#aaa;margin-bottom:4px}
+  .meta-val{font-size:13px;font-weight:600;color:#1a1a2e}
+  .modal-footer{padding:16px 24px;border-top:1px solid #f0f0f0;display:flex;gap:10px}
+  .btn-full{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #e8ecf0;background:white;color:#444;transition:all .15s}
+  .btn-full:hover{background:#f4f6f9}
+  .btn-primary-full{background:#e94560;color:white;border-color:#e94560}
+  .btn-primary-full:hover{background:#c73652}
+
+  /* Upload modal */
+  .upload-area{margin:20px 24px;border:2px dashed #d0d8e8;border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all .15s}
+  .upload-area:hover{border-color:#0f3460;background:#f8faff}
+  .upload-area svg{width:40px;height:40px;fill:#c0cad8;margin-bottom:10px}
+  .upload-area p{font-size:13px;color:#888}
+  .upload-area span{font-size:12px;color:#aaa}
+  .form-group{padding:0 24px 16px}
+  .form-group label{display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px}
+  .form-group input,.form-group select{width:100%;padding:9px 12px;border:1px solid #e8ecf0;border-radius:8px;font-size:13px;color:#1a1a2e;outline:none;background:white}
+  .form-group input:focus,.form-group select:focus{border-color:#0f3460}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 24px 16px}
+  .form-row .form-group{padding:0}
+
+  /* Notification */
+  .toast{position:fixed;bottom:28px;right:28px;background:#1a1a2e;color:white;padding:12px 18px;border-radius:10px;font-size:13px;z-index:300;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateY(0)}
+
+  /* Pagination */
+  .pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid #f0f0f0}
+  .pagination p{font-size:12px;color:#aaa}
+  .page-btns{display:flex;gap:6px}
+  .page-btn{width:30px;height:30px;border:1px solid #e8ecf0;border-radius:6px;background:white;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#555}
+  .page-btn:hover,.page-btn.active{background:#0f3460;color:white;border-color:#0f3460}
+
+  /* ── Sidebar Collapse ── */
+  .sidebar-toggle{
+    position:fixed;top:50%;left:240px;transform:translateY(-50%);
+    width:20px;height:48px;
+    background:#0f3460;
+    border:none;border-radius:0 8px 8px 0;
+    cursor:pointer;z-index:60;
+    display:flex;align-items:center;justify-content:center;
+    color:white;font-size:13px;
+    transition:left .25s ease,background .15s;
+    box-shadow:2px 0 8px rgba(0,0,0,.18);
+  }
+  .sidebar-toggle:hover{background:#e94560}
+  .sidebar-toggle svg{width:12px;height:12px;fill:white;transition:transform .25s}
+
+  /* Collapsed state */
+  body.sidebar-collapsed .sidebar{transform:translateX(-240px)}
+  body.sidebar-collapsed .main{margin-left:0}
+  body.sidebar-collapsed .sidebar-toggle{left:0}
+  body.sidebar-collapsed .sidebar-toggle svg{transform:rotate(180deg)}
+  .sidebar{transition:transform .25s ease}
+  .main{transition:margin-left .25s ease}
+
+  /* ── Full Preview Modal ── */
+  .modal-bg.preview-open{display:flex}
+  .modal-preview-full{
+    background:white;border-radius:16px;
+    width:96%;max-width:900px;
+    height:90vh;
+    display:flex;flex-direction:column;
+    box-shadow:0 20px 60px rgba(0,0,0,.25);
+    overflow:hidden;
+  }
+  .preview-viewer{
+    flex:1;overflow:hidden;
+    background:#f4f6f9;
+    border-top:1px solid #f0f0f0;
+    border-bottom:1px solid #f0f0f0;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+  }
+  .preview-viewer iframe{width:100%;height:100%;border:none}
+  .preview-viewer img{max-width:100%;max-height:100%;object-fit:contain}
+  .preview-viewer .no-preview{text-align:center;padding:2rem;color:#aaa}
+  .preview-viewer .no-preview .big-icon{font-size:64px;margin-bottom:12px;display:block}
+  .preview-viewer .no-preview p{font-size:14px;font-weight:500;color:#555;margin-bottom:6px}
+  .preview-viewer .no-preview span{font-size:12px;color:#aaa}
+  .preview-meta-bar{
+    display:flex;gap:10px;flex-wrap:wrap;
+    padding:10px 20px;border-bottom:1px solid #f0f0f0;
+    background:#fafbfc;
+  }
+  .pmeta-chip{background:white;border:1px solid #e8ecf0;border-radius:8px;padding:5px 12px;font-size:11px;color:#555;display:flex;flex-direction:column;gap:1px}
+  .pmeta-chip b{font-size:12px;color:#1a1a2e;font-weight:600}
+
+  @media(max-width:768px){
+    .sidebar{width:200px}
+    .sidebar-toggle{left:200px}
+    body.sidebar-collapsed .sidebar-toggle{left:0}
+    .main{margin-left:200px}
+    body.sidebar-collapsed .main{margin-left:0}
+    .stats-grid{grid-template-columns:1fr 1fr}
+    .content{padding:16px}
+  }
+</style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="icon">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg>
+      </div>
+      <div class="logo-text">
+        <h1>Arsip Digital</h1>
+        <p>Manajemen Dokumen</p>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Menu Utama</div>
+      <button class="nav-item active" onclick="filterCat('semua',this)">
+        <svg viewBox="0 0 24 24"><path d="M10 3H4a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1V4a1 1 0 00-1-1zm0 10H4a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1v-6a1 1 0 00-1-1zM20 3h-6a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1V4a1 1 0 00-1-1zm0 10h-6a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1v-6a1 1 0 00-1-1z"/></svg>
+        Semua Dokumen
+        <span class="nav-count" id="nav-count-semua">0</span>
+      </button>
+
+      <div class="nav-label">Kategori</div>
+      <button class="nav-item" onclick="filterCat('sertifikat',this)">
+        <svg viewBox="0 0 24 24"><path d="M12 1l2.753 8.472H23l-7.244 5.263 2.753 8.472L12 18.944l-6.509 4.263 2.753-8.472L2 9.472h8.247L12 1z"/></svg>
+        Sertifikat
+        <span class="nav-count" id="nav-count-sertifikat">0</span>
+      </button>
+      <button class="nav-item" onclick="filterCat('surat-keluar-sekda',this)">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4.7l-8 5.334L4 8.7V6.297l8 5.333 8-5.333V8.7z"/></svg>
+        Surat Keluar Sekda
+        <span class="nav-count" id="nav-count-surat-keluar-sekda">0</span>
+      </button>
+      <button class="nav-item" onclick="filterCat('surat-keluar-diskop',this)">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4.7l-8 5.334L4 8.7V6.297l8 5.333 8-5.333V8.7z"/></svg>
+        Surat Keluar Diskop
+        <span class="nav-count" id="nav-count-surat-keluar-diskop">0</span>
+      </button>
+      <button class="nav-item" onclick="filterCat('surat-permohonan-ttd',this)">
+        <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.21a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+        Permohonan Tanda Tangan
+        <span class="nav-count" id="nav-count-surat-permohonan-ttd">0</span>
+      </button>
+      <button class="nav-item" onclick="filterCat('surat-permohonan-konsumsi',this)">
+        <svg viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>
+        Permohonan Konsumsi
+        <span class="nav-count" id="nav-count-surat-permohonan-konsumsi">0</span>
+      </button>
+      <button class="nav-item" onclick="filterCat('surat-undangan',this)">
+        <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 002 2h14a2 2 0 002-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+        Surat Undangan
+        <span class="nav-count" id="nav-count-surat-undangan">0</span>
+      </button>
+      <button class="nav-item" onclick="filterCat('surat-tugas-pengawasan',this)">
+        <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8a3 3 0 100 6 3 3 0 000-6z"/></svg>
+        SPT Pengawasan
+        <span class="nav-count" id="nav-count-surat-tugas-pengawasan">0</span>
+      </button>
+      <button class="nav-item" onclick="filterCat('surat-tugas-dinas',this)">
+        <svg viewBox="0 0 24 24"><path d="M21 3L3 10.53v.98l6.84 2.65L12.48 21h.98L21 3z"/></svg>
+        SPT Perjalanan Dinas
+        <span class="nav-count" id="nav-count-surat-tugas-dinas">0</span>
+      </button>
+      <button class="nav-item" onclick="filterCat('surat-tugas-pelatihan',this)">
+        <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>
+        SPT Pelatihan
+        <span class="nav-count" id="nav-count-surat-tugas-pelatihan">0</span>
+      </button>
+      <button class="nav-item" onclick="filterCat('surat-cuti-tahunan',this)">
+        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/></svg>
+        Surat Cuti Tahunan
+        <span class="nav-count" id="nav-count-surat-cuti-tahunan">0</span>
+      </button>
+      <button class="nav-item" onclick="filterCat('peraturan',this)">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 17h8v1H8v-1zm0-3h8v1H8v-1zm0-3h5v1H8v-1z" fill="currentColor"/></svg>
+        Peraturan
+        <span class="nav-count" id="nav-count-peraturan">0</span>
+      </button>
+      <button class="nav-item" onclick="filterCat('arsip',this)">
+        <svg viewBox="0 0 24 24"><path d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19a2 2 0 002 2h14a2 2 0 002-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5L6.5 12H10v-2h4v2h3.5L12 17.5zM5.12 5l.81-1h12l.94 1H5.12z"/></svg>
+        Arsip
+        <span class="nav-count" id="nav-count-arsip">0</span>
+      </button>
+      <button class="nav-item" onclick="filterCat('lainnya',this)">
+        <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        Lainnya
+        <span class="nav-count" id="nav-count-lainnya">0</span>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- Sidebar Toggle Button -->
+  <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="Sembunyikan/Tampilkan Sidebar">
+    <svg viewBox="0 0 12 12"><path d="M8 2L4 6l4 4" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <h2 id="page-title">Semua Dokumen</h2>
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input type="text" id="search" placeholder="Cari dokumen..." oninput="renderTable()">
+      </div>
+      <div class="topbar-right">
+        <select class="year-select" id="year-filter" onchange="renderTable()">
+          <option value="">Semua Tahun</option>
+        </select>
+        <button onclick="syncFromDrive()" style="display:flex;align-items:center;gap:5px;padding:8px 12px;background:#1a7a5e;color:white;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;" title="Ambil data terbaru dari Google Drive">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="white"><path d="M17.65 6.35A7.96 7.96 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+          Dari Drive
+        </button>
+        <button onclick="syncToDrive()" style="display:flex;align-items:center;gap:5px;padding:8px 12px;background:#0f3460;color:white;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;" title="Backup semua data ke Google Drive">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="white"><path d="M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+          Sync ke Drive
+        </button>
+        <button class="btn-add" onclick="openUpload()">
+          <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          Tambah Dokumen
+        </button>
+        <div id="save-indicator" style="font-size:11px;color:#27ae60;display:flex;align-items:center;gap:4px;white-space:nowrap;opacity:0;transition:opacity .4s">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5.5" fill="#27ae60"/><path d="M3.5 6l2 2 3-3" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Tersimpan
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="stats-grid">
+        <div class="stat-card accent">
+          <div class="label">Total Dokumen</div>
+          <div class="number" id="s-total">0</div>
+          <div class="sub">Semua kategori</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Dokumen Bulan Ini</div>
+          <div class="number" id="s-month">0</div>
+          <div class="sub" id="s-month-label">Memuat...</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total Kategori</div>
+          <div class="number">12</div>
+          <div class="sub">Jenis surat & arsip</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Ditampilkan</div>
+          <div class="number" id="s-shown">0</div>
+          <div class="sub">Dokumen saat ini</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h3 id="table-title">Semua Dokumen</h3>
+            <p id="table-sub">Menampilkan seluruh dokumen</p>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30%">Nama Dokumen</th>
+              <th style="width:20%">Kategori</th>
+              <th style="width:12%">Tanggal</th>
+              <th style="width:8%">Format</th>
+              <th style="width:8%">Ukuran</th>
+              <th style="width:22%">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="pagination">
+          <p id="pagi-info"></p>
+          <div class="page-btns" id="page-btns"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal-bg" id="modal-preview" onclick="closePrev(event)">
+  <div class="modal-preview-full">
+    <div class="modal-head">
+      <div class="modal-head-info">
+        <h3 id="prev-title"></h3>
+        <p id="prev-sub"></p>
+      </div>
+      <button class="modal-close" onclick="closePrevBtn()">×</button>
+    </div>
+    <!-- Meta chips bar -->
+    <div class="preview-meta-bar">
+      <div class="pmeta-chip"><span>Kategori</span><b id="m-cat"></b></div>
+      <div class="pmeta-chip"><span>Tanggal</span><b id="m-date"></b></div>
+      <div class="pmeta-chip"><span>Format</span><b id="m-fmt"></b></div>
+      <div class="pmeta-chip"><span>Ukuran</span><b id="m-size"></b></div>
+    </div>
+    <!-- Live viewer -->
+    <div class="preview-viewer" id="preview-viewer">
+      <!-- filled by JS -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn-full" onclick="closePrevBtn()">Tutup</button>
+      <button class="btn-full btn-primary-full" onclick="downloadCurrent()">⬇ Unduh Dokumen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-bg" id="modal-upload" onclick="closeUpload(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-head-info">
+        <h3>Tambah Dokumen Baru</h3>
+        <p>Unggah file dan isi informasi dokumen</p>
+      </div>
+      <button class="modal-close" onclick="closeUploadBtn()">×</button>
+    </div>
+    <div class="upload-area" onclick="document.getElementById('file-input').click()">
+      <svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+      <p>Klik untuk pilih file</p>
+      <span id="file-chosen">PDF, DOCX, atau XLSX • Maks. 10MB</span>
+      <input type="file" id="file-input" style="display:none" accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.txt" onchange="fileChosen(this)">
+    </div>
+    <div class="form-group">
+      <label>Nama Dokumen</label>
+      <input type="text" id="new-name" placeholder="Contoh: Surat Keluar Sekda No. 001/2025">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Kategori</label>
+        <select id="new-cat">
+          <option value="">-- Pilih Kategori --</option>
+          <option value="sertifikat">Sertifikat</option>
+          <option value="surat-keluar-sekda">Surat Keluar Sekda</option>
+          <option value="surat-keluar-diskop">Surat Keluar Diskop</option>
+          <option value="surat-permohonan-ttd">Permohonan Tanda Tangan</option>
+          <option value="surat-permohonan-konsumsi">Permohonan Konsumsi</option>
+          <option value="surat-undangan">Surat Undangan</option>
+          <option value="surat-tugas-pengawasan">SPT Pengawasan</option>
+          <option value="surat-tugas-dinas">SPT Perjalanan Dinas</option>
+          <option value="surat-tugas-pelatihan">SPT Pelatihan</option>
+          <option value="surat-cuti-tahunan">Surat Cuti Tahunan</option>
+          <option value="arsip">Arsip</option>
+          <option value="peraturan">Peraturan</option>
+          <option value="lainnya">Lainnya</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tanggal Dokumen</label>
+        <input type="date" id="new-date">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-full" onclick="closeUploadBtn()">Batal</button>
+      <button class="btn-full btn-primary-full" onclick="saveDoc()">Simpan Dokumen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-bg" id="modal-edit" onclick="closeEdit(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-head-info">
+        <h3>Edit Dokumen</h3>
+        <p>Ubah informasi atau ganti file dokumen</p>
+      </div>
+      <button class="modal-close" onclick="closeEditBtn()">×</button>
+    </div>
+    <div class="upload-area" onclick="document.getElementById('edit-file-input').click()" id="edit-upload-area">
+      <svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+      <p>Klik untuk ganti file (opsional)</p>
+      <span id="edit-file-chosen">Biarkan kosong jika tidak ingin mengganti file</span>
+      <input type="file" id="edit-file-input" style="display:none" accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.txt" onchange="editFileChosen(this)">
+    </div>
+    <div class="form-group">
+      <label>Nama Dokumen</label>
+      <input type="text" id="edit-name" placeholder="Nama dokumen">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Kategori</label>
+        <select id="edit-cat">
+          <option value="">-- Pilih Kategori --</option>
+          <option value="sertifikat">Sertifikat</option>
+          <option value="surat-keluar-sekda">Surat Keluar Sekda</option>
+          <option value="surat-keluar-diskop">Surat Keluar Diskop</option>
+          <option value="surat-permohonan-ttd">Permohonan Tanda Tangan</option>
+          <option value="surat-permohonan-konsumsi">Permohonan Konsumsi</option>
+          <option value="surat-undangan">Surat Undangan</option>
+          <option value="surat-tugas-pengawasan">SPT Pengawasan</option>
+          <option value="surat-tugas-dinas">SPT Perjalanan Dinas</option>
+          <option value="surat-tugas-pelatihan">SPT Pelatihan</option>
+          <option value="surat-cuti-tahunan">Surat Cuti Tahunan</option>
+          <option value="arsip">Arsip</option>
+          <option value="peraturan">Peraturan</option>
+          <option value="lainnya">Lainnya</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tanggal Dokumen</label>
+        <input type="date" id="edit-date">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-full" onclick="closeEditBtn()">Batal</button>
+      <button class="btn-full btn-primary-full" onclick="saveEdit()">Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CATS = {
+  'semua':'Semua Dokumen',
+  'sertifikat':'Sertifikat',
+  'surat-keluar-sekda':'Surat Keluar Sekda',
+  'surat-keluar-diskop':'Surat Keluar Diskop',
+  'surat-permohonan-ttd':'Permohonan Tanda Tangan',
+  'surat-permohonan-konsumsi':'Permohonan Konsumsi',
+  'surat-undangan':'Surat Undangan',
+  'surat-tugas-pengawasan':'SPT Pengawasan',
+  'surat-tugas-dinas':'SPT Perjalanan Dinas',
+  'surat-tugas-pelatihan':'SPT Pelatihan',
+  'surat-cuti-tahunan':'Surat Cuti Tahunan',
+  'arsip':'Arsip',
+  'peraturan':'Peraturan',
+  'lainnya':'Lainnya'
+};
+
+const BADGE = {
+  'sertifikat':'b-amber','surat-keluar-sekda':'b-blue','surat-keluar-diskop':'b-teal',
+  'surat-permohonan-ttd':'b-purple','surat-permohonan-konsumsi':'b-coral',
+  'surat-undangan':'b-pink','surat-tugas-pengawasan':'b-green',
+  'surat-tugas-dinas':'b-gray','surat-tugas-pelatihan':'b-teal','surat-cuti-tahunan':'b-amber',
+  'arsip':'b-blue','peraturan':'b-purple','lainnya':'b-gray'
+};
+
+// ══════════════════════════════════════════════════
+//  GOOGLE DRIVE SYNC v3 — Direct REST API + OAuth2
+//  Tidak melalui Claude API. Upload/download file
+//  langsung ke Google Drive dari browser.
+// ══════════════════════════════════════════════════
+
+const GD_FILE_ID   = '1-_aSieRrOe_H9hIQTGIyz6mLm8Pp3iPl';
+const GD_FOLDER_ID = '121boYHjajvRijQ_HQEM-eraVx_YIUYVq';
+
+// Cache subfolder IDs: { catKey: folderId }
+const _subfolderCache = {};
+// Flag agar scan Drive hanya dilakukan sekali per sesi
+let _subfolderScanned = false;
+
+// ── Scan SEMUA subfolder yang sudah ada di Drive sekaligus ──
+// Ini lebih efisien dan tidak mungkin duplikat karena cek satu kali
+async function scanExistingSubfolders() {
+  if (_subfolderScanned) return;
+  const token = await getGDToken();
+
+  // Ambil semua folder anak dari GD_FOLDER_ID dalam satu request
+  const q = encodeURIComponent(
+    '"' + GD_FOLDER_ID + '" in parents' +
+    ' and mimeType="application/vnd.google-apps.folder"' +
+    ' and trashed=false'
+  );
+  const res  = await fetch(
+    'https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)&pageSize=100',
+    { headers: { 'Authorization': 'Bearer ' + token } }
+  );
+  const json = await res.json();
+
+  // Isi cache dengan folder yang sudah ada
+  if (json.files && json.files.length > 0) {
+    json.files.forEach(function(f) {
+      // Cocokkan nama folder dengan CATS
+      Object.keys(CATS).forEach(function(catKey) {
+        if (catKey !== 'semua' && f.name === CATS[catKey]) {
+          _subfolderCache[catKey] = f.id;
+        }
+      });
+    });
+  }
+
+  _subfolderScanned = true;
+  console.log('Subfolder scan selesai:', Object.keys(_subfolderCache).length, 'folder ditemukan');
+}
+
+// ── Cari atau buat subfolder kategori (tanpa duplikat) ──
+async function getOrCreateSubfolder(catKey) {
+  // Scan dulu jika belum pernah
+  await scanExistingSubfolders();
+
+  // Sudah ada di cache (dari scan atau sebelumnya)
+  if (_subfolderCache[catKey]) return _subfolderCache[catKey];
+
+  // Belum ada → buat baru
+  const token   = await getGDToken();
+  const catName = CATS[catKey] || catKey;
+
+  const createRes = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name: catName,
+      mimeType: 'application/vnd.google-apps.folder',
+      parents: [GD_FOLDER_ID]
+    })
+  });
+  const createJson = await createRes.json();
+  if (!createJson.id) throw new Error('Gagal buat folder: ' + JSON.stringify(createJson));
+  _subfolderCache[catKey] = createJson.id;
+  console.log('Folder baru dibuat:', catName, '->', createJson.id);
+  return createJson.id;
+}
+
+// ── Buat semua subfolder sekaligus (dipanggil saat Sync ke Drive) ──
+async function createAllSubfolders() {
+  const cats = Object.keys(CATS).filter(function(k){ return k !== 'semua'; });
+  // Reset scan flag agar selalu fresh saat sync
+  _subfolderScanned = false;
+  await scanExistingSubfolders();
+
+  let created = 0;
+  for (let i = 0; i < cats.length; i++) {
+    try {
+      await getOrCreateSubfolder(cats[i]);
+      created++;
+    } catch(e) {
+      console.warn('Gagal proses folder ' + cats[i] + ':', e.message);
+    }
+  }
+  return created;
+}
+// Ganti dengan Client ID dari Google Cloud Console Anda
+const GD_CLIENT_ID = '842811624055-s2u92qp2bofj9qa5rcra9r19h2k9df3j.apps.googleusercontent.com';
+const GD_SCOPES    = 'https://www.googleapis.com/auth/drive';
+
+let _gdToken = null;
+let _tokenExpiry = 0;
+
+// ── OAuth2: ambil access token via popup ──
+async function getGDToken() {
+  // Masih valid (5 menit sebelum expire)
+  if (_gdToken && Date.now() < _tokenExpiry - 300000) return _gdToken;
+
+  return new Promise(function(resolve, reject) {
+    // Gunakan Google Identity Services (GIS)
+    if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
+      // Coba tunggu sampai GIS selesai dimuat (async defer)
+      let waited = 0;
+      const waitGIS = setInterval(function() {
+        waited += 200;
+        if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+          clearInterval(waitGIS);
+          // Panggil ulang
+          getGDToken().then(resolve).catch(reject);
+        } else if (waited > 5000) {
+          clearInterval(waitGIS);
+          reject(new Error('Google Identity Services gagal dimuat. Pastikan terhubung ke internet.'));
+        }
+      }, 200);
+      return;
+    }
+    const client = window.google.accounts.oauth2.initTokenClient({
+      client_id: GD_CLIENT_ID,
+      scope: GD_SCOPES,
+      error_callback: function(err) {
+        console.error('GIS error:', err);
+        if (err.type === 'popup_failed_to_open') {
+          reject(new Error('Popup diblokir. Izinkan popup di browser untuk domain ini.'));
+        } else if (err.type === 'access_denied') {
+          reject(new Error('Akses ditolak. Pastikan email Anda terdaftar sebagai Test User di Google Cloud Console.'));
+        } else {
+          reject(new Error('Login gagal: ' + (err.message || err.type || JSON.stringify(err))));
+        }
+      },
+      callback: function(resp) {
+        if (resp.error) {
+          console.error('Token error:', resp);
+          reject(new Error('Token error: ' + resp.error + (resp.error_description ? ' — ' + resp.error_description : '')));
+          return;
+        }
+        _gdToken = resp.access_token;
+        _tokenExpiry = Date.now() + (resp.expires_in * 1000);
+        resolve(_gdToken);
+      }
+    });
+    client.requestAccessToken({ prompt: 'consent' });
+  });
+}
+
+// ── Helper: konversi File → ArrayBuffer ──
+function fileToArrayBuffer(file) {
+  return new Promise(function(resolve, reject) {
+    const r = new FileReader();
+    r.onload  = function() { resolve(r.result); };
+    r.onerror = reject;
+    r.readAsArrayBuffer(file);
+  });
+}
+
+// ── Helper: encode string UTF-8 → base64 ──
+function safeB64Encode(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  bytes.forEach(function(b) { bin += String.fromCharCode(b); });
+  return btoa(bin);
+}
+
+// ── Upload FILE ASLI ke Google Drive via Multipart Upload ──
+async function uploadFileToDrive(file, docName, catKey) {
+  try {
+    const token    = await getGDToken();
+    const fileName = docName + '.' + file.name.split('.').pop();
+    const mimeType = file.type || 'application/octet-stream';
+    const buf      = await fileToArrayBuffer(file);
+
+    // Tentukan parent folder: subfolder kategori jika ada, fallback ke root
+    let parentId = GD_FOLDER_ID;
+    if (catKey && catKey !== 'semua') {
+      try {
+        parentId = await getOrCreateSubfolder(catKey);
+      } catch(e) {
+        console.warn('Gagal ambil subfolder, upload ke root:', e.message);
+      }
+    }
+
+    // Multipart upload: metadata + file content dalam satu request
+    const boundary = '-------314159265358979323846';
+    const metadata = JSON.stringify({ name: fileName, parents: [parentId] });
+
+    // Build multipart body
+    const encoder   = new TextEncoder();
+    const metaPart  = '--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + metadata + '\r\n';
+    const filePart  = '--' + boundary + '\r\nContent-Type: ' + mimeType + '\r\n\r\n';
+    const closePart = '\r\n--' + boundary + '--';
+
+    const bodyParts = [encoder.encode(metaPart), encoder.encode(filePart), new Uint8Array(buf), encoder.encode(closePart)];
+    const totalLen  = bodyParts.reduce(function(s, p) { return s + p.byteLength; }, 0);
+    const body      = new Uint8Array(totalLen);
+    let offset = 0;
+    bodyParts.forEach(function(p) { body.set(p, offset); offset += p.byteLength; });
+
+    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'multipart/related; boundary=' + boundary
+      },
+      body: body
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error('Drive upload error:', err);
+      return null;
+    }
+    const json = await res.json();
+    return json.id || null;
+  } catch(e) {
+    console.error('uploadFileToDrive error:', e);
+    return null;
+  }
+}
+
+// ── Simpan METADATA ke localStorage (selalu) + Drive (jika login) ──
+async function saveToDB() {
+  // 1. Selalu simpan ke localStorage dulu
+  const toSave = DOCS.map(function(d) { const r = Object.assign({}, d); delete r.file; return r; });
+  try { localStorage.setItem('arsip_digital_docs_v1', JSON.stringify(toSave)); } catch(_) {}
+
+  // 2. Coba simpan ke Drive
+  try {
+    const token = await getGDToken();
+    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files/' + GD_FILE_ID + '?uploadType=media', {
+      method: 'PATCH',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(toSave)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const el = document.getElementById('save-indicator');
+    if (el) { el.style.opacity='1'; clearTimeout(el._t); el._t = setTimeout(function(){ el.style.opacity='0'; }, 2500); }
+  } catch(e) {
+    console.warn('Drive save gagal (tersimpan lokal):', e.message);
+    // Jangan tampilkan error jika hanya belum login
+  }
+}
+
+// ── Muat dari localStorage (instant), Drive hanya via tombol Sync ──
+async function loadFromDrive() {
+  // Coba localStorage dulu — tidak perlu login
+  try {
+    const local = localStorage.getItem('arsip_digital_docs_v1');
+    if (local) {
+      const parsed = JSON.parse(local);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map(function(d) { return Object.assign({}, d, { file: null }); });
+      }
+    }
+  } catch(_) {}
+  return [];
+}
+
+// ── Sync FROM Drive (tombol manual) ──
+async function syncFromDrive() {
+  showToast('⏳ Menghubungkan ke Google Drive...');
+  try {
+    const token = await getGDToken();
+    const res   = await fetch('https://www.googleapis.com/drive/v3/files/' + GD_FILE_ID + '?alt=media', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const parsed = await res.json();
+    if (Array.isArray(parsed)) {
+      DOCS = parsed.map(function(d) { return Object.assign({}, d, {file:null}); });
+      localStorage.setItem('arsip_digital_docs_v1', JSON.stringify(DOCS));
+      updateCounts(); updateYearFilter(); renderTable();
+      showToast('✅ ' + DOCS.length + ' dokumen berhasil dimuat dari Google Drive!');
+    }
+  } catch(e) {
+    showToast('⚠ Gagal ambil dari Drive: ' + e.message);
+  }
+}
+
+// ── Sync TO Drive (tombol manual) ──
+async function syncToDrive() {
+  showToast('⏳ Menghubungkan ke Google Drive...');
+  try {
+    const token = await getGDToken();
+
+    // Buat semua subfolder kategori sekaligus
+    await createAllSubfolders();
+
+    // Simpan metadata
+    const toSave = DOCS.map(function(d) { const r = Object.assign({}, d); delete r.file; return r; });
+    const res    = await fetch('https://www.googleapis.com/upload/drive/v3/files/' + GD_FILE_ID + '?uploadType=media', {
+      method: 'PATCH',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(toSave)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    showToast('✅ Subfolder kategori & data (' + DOCS.length + ' dokumen) berhasil disync ke Drive!');
+  } catch(e) {
+    showToast('⚠ Sync gagal: ' + e.message);
+  }
+}
+
+// ── Generate URL unduh dari driveFileId ──
+function driveDownloadUrl(driveFileId) {
+  return `https://drive.google.com/uc?export=download&id=${driveFileId}`;
+}
+function driveViewUrl(driveFileId) {
+  return `https://drive.google.com/file/d/${driveFileId}/view`;
+}
+
+function setLoadingState(loading) {
+  const tb = document.getElementById('tbody');
+  if (loading) {
+    tb.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:#aaa">
+      <div style="display:inline-flex;align-items:center;gap:10px;font-size:14px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f3460" stroke-width="2" stroke-linecap="round">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83">
+            <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+          </path>
+        </svg>
+        Memuat data dari Google Drive...
+      </div>
+    </td></tr>`;
+  }
+}
+
+const DEMO_DOCS = [
+  {id:1,name:'Sertifikat Pelatihan Akuntansi 2025',cat:'sertifikat',date:'2025-03-12',fmt:'PDF',size:'1.2 MB'},
+  {id:2,name:'Sertifikat ISO 9001:2015',cat:'sertifikat',date:'2024-11-05',fmt:'PDF',size:'890 KB'},
+  {id:3,name:'Surat Keluar Sekda No. 001/2025',cat:'surat-keluar-sekda',date:'2025-04-01',fmt:'DOCX',size:'320 KB'},
+  {id:4,name:'Surat Keluar Sekda No. 045/2024',cat:'surat-keluar-sekda',date:'2024-08-20',fmt:'PDF',size:'450 KB'},
+  {id:5,name:'Surat Keluar Diskop No. 012/2025',cat:'surat-keluar-diskop',date:'2025-02-14',fmt:'DOCX',size:'280 KB'},
+  {id:6,name:'Permohonan TTD Laporan Keuangan Q1',cat:'surat-permohonan-ttd',date:'2025-04-10',fmt:'PDF',size:'1.5 MB'},
+  {id:7,name:'Permohonan Konsumsi Rapat Koordinasi',cat:'surat-permohonan-konsumsi',date:'2025-03-28',fmt:'DOCX',size:'210 KB'},
+  {id:8,name:'Undangan Rapat Evaluasi Semester',cat:'surat-undangan',date:'2025-04-15',fmt:'PDF',size:'340 KB'},
+  {id:9,name:'Undangan Sosialisasi Program 2025',cat:'surat-undangan',date:'2025-01-20',fmt:'DOCX',size:'190 KB'},
+  {id:11,name:'Surat SPT Pengawasan Lapangan April',cat:'surat-tugas-pengawasan',date:'2025-04-08',fmt:'PDF',size:'220 KB'},
+  {id:12,name:'Surat SPT Perjalanan Dinas Surabaya',cat:'surat-tugas-dinas',date:'2025-03-22',fmt:'PDF',size:'310 KB'},
+  {id:13,name:'Surat SPT Perjalanan Dinas Jakarta',cat:'surat-tugas-dinas',date:'2024-12-10',fmt:'DOCX',size:'260 KB'},
+  {id:14,name:'Surat SPT Pelatihan SDM 2025',cat:'surat-tugas-pelatihan',date:'2025-04-02',fmt:'PDF',size:'180 KB'},
+  {id:15,name:'Surat Cuti Tahunan - Ahmad Santoso',cat:'surat-cuti-tahunan',date:'2025-03-15',fmt:'PDF',size:'130 KB'},
+  {id:16,name:'Surat Cuti Tahunan - Dewi Rahayu',cat:'surat-cuti-tahunan',date:'2025-01-10',fmt:'PDF',size:'125 KB'},
+  {id:17,name:'Arsip Notulen Rapat Maret 2025',cat:'arsip',date:'2025-03-31',fmt:'PDF',size:'2.1 MB'},
+  {id:18,name:'Arsip Data Anggaran 2024',cat:'arsip',date:'2024-12-31',fmt:'XLSX',size:'3.4 MB'},
+  {id:19,name:'Dokumen Kebijakan Internal 2025',cat:'lainnya',date:'2025-01-05',fmt:'PDF',size:'540 KB'},
+];
+
+let DOCS = [];
+
+let activeCat = 'semua';
+let currentDoc = null;
+let currentPage = 1;
+const PER_PAGE = 20;
+
+function filterCat(cat, btn){
+  activeCat = cat;
+  currentPage = 1;
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.getElementById('page-title').textContent = CATS[cat]||cat;
+  document.getElementById('table-title').textContent = CATS[cat]||cat;
+  renderTable();
+}
+
+function getFiltered(){
+  const q = document.getElementById('search').value.toLowerCase();
+  const yr = document.getElementById('year-filter').value;
+  return DOCS.filter(d=>{
+    if(activeCat!=='semua'&&d.cat!==activeCat)return false;
+    if(yr&&!d.date.startsWith(yr))return false;
+    if(q&&!d.name.toLowerCase().includes(q))return false;
+    return true;
+  });
+}
+
+function updateCounts(){
+  Object.keys(CATS).forEach(c=>{
+    const el = document.getElementById('nav-count-'+c);
+    if(el) el.textContent = c==='semua'?DOCS.length:DOCS.filter(d=>d.cat===c).length;
+  });
+  document.getElementById('s-total').textContent = DOCS.length;
+  // Gunakan bulan & tahun saat ini secara dinamis
+  const now = new Date();
+  const yy = now.getFullYear();
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  const monthPrefix = `${yy}-${mm}`;
+  const BULAN_ID = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const monthLabel = BULAN_ID[now.getMonth()] + ' ' + yy;
+  const thisMonth = DOCS.filter(d=>d.date.startsWith(monthPrefix)).length;
+  document.getElementById('s-month').textContent = thisMonth;
+  const subEl = document.getElementById('s-month-label');
+  if(subEl) subEl.textContent = monthLabel;
+}
+
+function renderTable(){
+  const rows = getFiltered();
+  document.getElementById('s-shown').textContent = rows.length;
+  const total = rows.length;
+  const pages = Math.max(1,Math.ceil(total/PER_PAGE));
+  if(currentPage>pages) currentPage=1;
+  const start=(currentPage-1)*PER_PAGE;
+  const slice=rows.slice(start,start+PER_PAGE);
+  const tb=document.getElementById('tbody');
+  document.getElementById('table-sub').textContent = total+' dokumen ditemukan';
+  document.getElementById('pagi-info').textContent = 'Menampilkan '+(total?start+1:0)+'-'+Math.min(start+PER_PAGE,total)+' dari '+total+' dokumen';
+
+  if(!slice.length){
+    tb.innerHTML='<tr class="empty-row"><td colspan="6">Tidak ada dokumen ditemukan.</td></tr>';
+  } else {
+    tb.innerHTML=slice.map(d=>`
+      <tr>
+        <td>
+          <div class="doc-name">
+            <div class="doc-icon ${d.fmt.toLowerCase()}">${d.fmt}</div>
+            <div>
+              <div class="doc-name-text">${d.name}</div>
+              ${d.driveFileId ? '<div style="font-size:10px;color:#0f6e56;margin-top:2px">☁ Tersimpan di Drive</div>' : ''}
+            </div>
+          </div>
+        </td>
+        <td><span class="badge ${BADGE[d.cat]||'b-gray'}">${CATS[d.cat]||d.cat}</span></td>
+        <td>${d.date}</td>
+        <td><span class="badge b-gray">${d.fmt}</span></td>
+        <td>${d.size}</td>
+        <td>
+          <div class="actions">
+            <button class="btn-sm" onclick='openPrev(${d.id})'>
+              <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8a3 3 0 100 6 3 3 0 000-6z"/></svg>
+              Preview
+            </button>
+            <button class="btn-sm btn-edit" onclick='openEdit(${d.id})'>
+              <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.21a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+              Edit
+            </button>
+            <button class="btn-sm btn-dl" onclick='dlDoc(${d.id})'>
+              <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5z"/></svg>
+              Unduh
+            </button>
+            <button class="btn-sm btn-del" onclick='deleteDoc(${d.id})'>
+              <svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zm3-9h2v7H9v-7zm4 0h2v7h-2v-7zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+              Hapus
+            </button>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+
+  const pb=document.getElementById('page-btns');
+  pb.innerHTML='';
+  if(pages<=1){pb.style.display='none';return}
+  pb.style.display='flex';
+  for(let i=1;i<=pages;i++){
+    const b=document.createElement('button');
+    b.className='page-btn'+(i===currentPage?' active':'');
+    b.textContent=i;
+    b.onclick=(()=>{const p=i;return()=>{currentPage=p;renderTable();}})();
+    pb.appendChild(b);
+  }
+}
+
+function openPrev(id){
+  const d=DOCS.find(x=>x.id===id);
+  if(!d)return;
+  currentDoc=d;
+  document.getElementById('prev-title').textContent=d.name;
+  document.getElementById('prev-sub').textContent=CATS[d.cat]||d.cat;
+  document.getElementById('m-cat').textContent=CATS[d.cat]||d.cat;
+  document.getElementById('m-date').textContent=d.date;
+  document.getElementById('m-fmt').textContent=d.fmt;
+  document.getElementById('m-size').textContent=d.size;
+
+  // Build viewer
+  const viewer = document.getElementById('preview-viewer');
+  viewer.innerHTML = '';
+
+  if(d.file){
+    const url = URL.createObjectURL(d.file);
+    const ext = d.file.name.split('.').pop().toLowerCase();
+    const isImg = ['jpg','jpeg','png','gif','webp','bmp','svg'].includes(ext);
+    const isPdf = ext === 'pdf';
+
+    if(isImg){
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = d.name;
+      viewer.appendChild(img);
+    } else if(isPdf){
+      const iframe = document.createElement('iframe');
+      iframe.src = url;
+      viewer.appendChild(iframe);
+    } else {
+      viewer.innerHTML = noPreviewHTML(d.fmt, 'Format '+d.fmt+' tidak bisa ditampilkan langsung', 'Gunakan tombol Unduh untuk membuka file di aplikasinya.');
+    }
+  } else if(d.driveFileId){
+    // File ada di Drive — tampilkan via Google Drive viewer
+    const isPdf = d.fmt === 'PDF';
+    if(isPdf){
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://drive.google.com/file/d/${d.driveFileId}/preview`;
+      viewer.appendChild(iframe);
+    } else {
+      const icons={'PDF':'📄','DOCX':'📝','XLSX':'📊'};
+      const icon = icons[d.fmt]||'📎';
+      viewer.innerHTML = `<div class="no-preview">
+        <span class="big-icon">${icon}</span>
+        <p>${d.name}</p>
+        <span>File tersimpan di Google Drive. Gunakan tombol <b>Unduh</b> untuk membuka.</span>
+        <br><br>
+        <a href="${driveViewUrl(d.driveFileId)}" target="_blank" style="display:inline-block;margin-top:10px;padding:8px 18px;background:#0f3460;color:white;border-radius:8px;font-size:13px;text-decoration:none">🔗 Buka di Google Drive</a>
+      </div>`;
+    }
+  } else {
+    const icons={'PDF':'📄','DOCX':'📝','XLSX':'📊'};
+    const icon = icons[d.fmt]||'📎';
+    viewer.innerHTML = `<div class="no-preview">
+      <span class="big-icon">${icon}</span>
+      <p>${d.name}</p>
+      <span>File belum diupload. Gunakan tombol Edit untuk menambahkan file.</span>
+    </div>`;
+  }
+
+  document.getElementById('modal-preview').classList.add('open');
+}
+
+function noPreviewHTML(fmt, title, sub){
+  return `<div class="no-preview"><span class="big-icon">📎</span><p>${title}</p><span>${sub}</span></div>`;
+}
+
+function closePrev(e){if(e.target===document.getElementById('modal-preview'))closePrevBtn()}
+function closePrevBtn(){
+  document.getElementById('modal-preview').classList.remove('open');
+  document.getElementById('preview-viewer').innerHTML='';
+  currentDoc=null;
+}
+
+function updateYearFilter(){
+  const sel = document.getElementById('year-filter');
+  const current = sel.value;
+  const years = [...new Set(DOCS.map(d => d.date.substring(0,4)).filter(Boolean))]
+    .sort((a,b) => b - a);
+  sel.innerHTML = '<option value="">Semua Tahun</option>' +
+    years.map(y => `<option value="${y}"${current===y?' selected':''}>${y}</option>`).join('');
+}
+
+function deleteDoc(id){
+  const d = DOCS.find(x => x.id === id);
+  if(!d) return;
+  if(!confirm(`Hapus dokumen ini?\n\n"${d.name}"\n\nTindakan ini tidak dapat dibatalkan.`)) return;
+  DOCS = DOCS.filter(x => x.id !== id);
+  saveToDB();
+  updateCounts();
+  updateYearFilter();
+  renderTable();
+  showToast('Dokumen "' + d.name + '" berhasil dihapus.');
+}
+
+function toggleSidebar(){
+  document.body.classList.toggle('sidebar-collapsed');
+}
+
+function downloadCurrent(){
+  if(!currentDoc)return;
+  doDownload(currentDoc);
+  closePrevBtn();
+}
+
+function dlDoc(id){
+  const d=DOCS.find(x=>x.id===id);
+  if(d) doDownload(d);
+}
+
+function doDownload(d){
+  if(d.file){
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(d.file);
+    a.download=d.name+'.'+d.fmt.toLowerCase();
+    a.click();
+    showToast('Mengunduh: '+d.name);
+  } else if(d.driveFileId){
+    window.open(driveDownloadUrl(d.driveFileId), '_blank');
+    showToast('Membuka unduhan dari Google Drive: '+d.name);
+  } else {
+    showToast('File tidak tersedia. Upload ulang file untuk mengaktifkan fitur unduh.');
+  }
+}
+
+function openUpload(){document.getElementById('modal-upload').classList.add('open')}
+function closeUpload(e){if(e.target===document.getElementById('modal-upload'))closeUploadBtn()}
+function closeUploadBtn(){
+  document.getElementById('modal-upload').classList.remove('open');
+  document.getElementById('new-name').value='';
+  document.getElementById('new-cat').value='';
+  document.getElementById('new-date').value='';
+  document.getElementById('file-input').value='';
+  document.getElementById('file-chosen').textContent='PDF, DOCX, atau XLSX • Maks. 10MB';
+}
+
+function fileChosen(inp){
+  if(inp.files[0]){
+    const f=inp.files[0];
+    document.getElementById('file-chosen').textContent='✓ '+f.name+' ('+Math.round(f.size/1024)+' KB)';
+    if(!document.getElementById('new-name').value) document.getElementById('new-name').value=f.name.replace(/\.[^/.]+$/,'');
+  }
+}
+
+async function saveDoc(){
+  const name=document.getElementById('new-name').value.trim();
+  const cat=document.getElementById('new-cat').value;
+  const date=document.getElementById('new-date').value;
+  const fileInp=document.getElementById('file-input');
+  if(!name){alert('Mohon isi nama dokumen.');return}
+  if(!cat){alert('Mohon pilih kategori.');return}
+  if(!date){alert('Mohon isi tanggal dokumen.');return}
+  const file=fileInp.files[0]||null;
+  const fmt=file?file.name.split('.').pop().toUpperCase():'PDF';
+  const size=file?Math.round(file.size/1024)+' KB':'—';
+
+  // Nonaktifkan tombol agar tidak double-submit
+  const btnSimpan=document.querySelector('#modal-upload .btn-primary-full');
+  if(btnSimpan){btnSimpan.disabled=true;btnSimpan.textContent='⏳ Menyimpan...';}
+
+  let driveFileId=null;
+  if(file){
+    showToast('⏳ Mengupload file ke Google Drive...');
+    driveFileId=await uploadFileToDrive(file,name,cat);
+  }
+
+  const newDoc={id:Date.now(),name:name,cat:cat,date:date,fmt:fmt,size:size,file:file,driveFileId:driveFileId};
+  DOCS.unshift(newDoc);
+  await saveToDB();
+  updateCounts();
+  updateYearFilter();
+  renderTable();
+
+  closeUploadBtn();
+  if(driveFileId){showToast('✅ Dokumen berhasil disimpan ke Google Drive!');}
+  else if(file){showToast('⚠ Upload file gagal, metadata tetap disimpan.');}
+  else{showToast('✅ Dokumen berhasil disimpan!');}
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── EDIT DOKUMEN ──
+let editDocId = null;
+let editNewFile = null;
+
+function openEdit(id){
+  const d = DOCS.find(x => x.id === id);
+  if(!d) return;
+  editDocId = id;
+  editNewFile = null;
+  document.getElementById('edit-name').value = d.name;
+  document.getElementById('edit-cat').value = d.cat;
+  document.getElementById('edit-date').value = d.date;
+  document.getElementById('edit-file-input').value = '';
+  document.getElementById('edit-file-chosen').textContent = d.file
+    ? '✓ File saat ini: ' + d.file.name
+    : 'Biarkan kosong jika tidak ingin mengganti file';
+  document.getElementById('modal-edit').classList.add('open');
+}
+
+function closeEdit(e){ if(e.target===document.getElementById('modal-edit')) closeEditBtn(); }
+function closeEditBtn(){
+  document.getElementById('modal-edit').classList.remove('open');
+  editDocId = null;
+  editNewFile = null;
+}
+
+function editFileChosen(inp){
+  if(inp.files[0]){
+    editNewFile = inp.files[0];
+    document.getElementById('edit-file-chosen').textContent = '✓ ' + editNewFile.name + ' (' + Math.round(editNewFile.size/1024) + ' KB)';
+  }
+}
+
+async function saveEdit(){
+  const name = document.getElementById('edit-name').value.trim();
+  const cat  = document.getElementById('edit-cat').value;
+  const date = document.getElementById('edit-date').value;
+  if(!name){ alert('Mohon isi nama dokumen.'); return; }
+  if(!cat){  alert('Mohon pilih kategori.'); return; }
+  if(!date){ alert('Mohon isi tanggal dokumen.'); return; }
+  const idx = DOCS.findIndex(function(x){ return x.id === editDocId; });
+  if(idx === -1) return;
+
+  // Nonaktifkan tombol agar tidak double-submit
+  const btnSimpan=document.querySelector('#modal-edit .btn-primary-full');
+  if(btnSimpan){btnSimpan.disabled=true;btnSimpan.textContent='⏳ Menyimpan...';}
+
+  DOCS[idx].name = name;
+  DOCS[idx].cat  = cat;
+  DOCS[idx].date = date;
+
+  let uploadOk=null;
+  if(editNewFile){
+    showToast('⏳ Mengupload file baru ke Google Drive...');
+    const driveFileId=await uploadFileToDrive(editNewFile,name,DOCS[idx].cat);
+    DOCS[idx].file=editNewFile;
+    DOCS[idx].fmt=editNewFile.name.split('.').pop().toUpperCase();
+    DOCS[idx].size=Math.round(editNewFile.size/1024)+' KB';
+    DOCS[idx].driveFileId=driveFileId;
+    uploadOk=!!driveFileId;
+  }
+
+  await saveToDB();
+  updateCounts();
+  updateYearFilter();
+  renderTable();
+
+  closeEditBtn();
+  if(uploadOk===true){showToast('✅ Dokumen & file berhasil diperbarui di Google Drive!');}
+  else if(uploadOk===false){showToast('⚠ Upload file gagal, metadata tetap diperbarui.');}
+  else{showToast('✅ Dokumen "'+name+'" berhasil diperbarui!');}
+}
+
+// ── INISIALISASI: Muat data lalu render ──
+(async () => {
+  // 1. Tampilkan dulu dari localStorage (instant, tanpa login)
+  DOCS = await loadFromDrive();
+  updateCounts();
+  updateYearFilter();
+  renderTable();
+
+  // 2. Auto-load dari Drive di background saat halaman dibuka
+  try {
+    setLoadingState(true);
+    const token = await getGDToken();
+    const res   = await fetch('https://www.googleapis.com/drive/v3/files/' + GD_FILE_ID + '?alt=media', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.ok) {
+      const parsed = await res.json();
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        DOCS = parsed.map(function(d) { return Object.assign({}, d, {file:null}); });
+        localStorage.setItem('arsip_digital_docs_v1', JSON.stringify(DOCS));
+        updateCounts();
+        updateYearFilter();
+        renderTable();
+      }
+    }
+  } catch(e) {
+    // Belum login atau tidak ada koneksi — pakai data lokal
+    console.warn('Auto-load dari Drive gagal:', e.message);
+  }
+})();
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){
+    closePrevBtn();
+    closeEditBtn();
+  }
+});
+</script>
+</body>
+</html>
