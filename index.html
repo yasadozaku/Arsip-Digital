@@ -1154,6 +1154,9 @@ function closeUploadBtn(){
   document.getElementById('new-date').value='';
   document.getElementById('file-input').value='';
   document.getElementById('file-chosen').textContent='PDF, DOCX, atau XLSX • Maks. 10MB';
+  // Selalu reset tombol Simpan ke kondisi awal
+  const btn = document.querySelector('#modal-upload .btn-primary-full');
+  if(btn){ btn.disabled=false; btn.textContent='Simpan Dokumen'; }
 }
 
 function fileChosen(inp){
@@ -1180,23 +1183,30 @@ async function saveDoc(){
   const btnSimpan=document.querySelector('#modal-upload .btn-primary-full');
   if(btnSimpan){btnSimpan.disabled=true;btnSimpan.textContent='⏳ Menyimpan...';}
 
-  let driveFileId=null;
-  if(file){
-    showToast('⏳ Mengupload file ke Google Drive...');
-    driveFileId=await uploadFileToDrive(file,name,cat);
+  try {
+    let driveFileId=null;
+    if(file){
+      showToast('⏳ Mengupload file ke Google Drive...');
+      driveFileId=await uploadFileToDrive(file,name,cat);
+    }
+
+    const newDoc={id:Date.now(),name:name,cat:cat,date:date,fmt:fmt,size:size,file:file,driveFileId:driveFileId};
+    DOCS.unshift(newDoc);
+    await saveToDB();
+    updateCounts();
+    updateYearFilter();
+    renderTable();
+
+    closeUploadBtn();
+    if(driveFileId){showToast('✅ Dokumen berhasil disimpan ke Google Drive!');}
+    else if(file){showToast('⚠ Upload file gagal, metadata tetap disimpan.');}
+    else{showToast('✅ Dokumen berhasil disimpan!');}
+  } catch(e) {
+    console.error('saveDoc error:', e);
+    showToast('⚠ Terjadi kesalahan: ' + e.message);
+    // Reset tombol agar bisa dicoba lagi
+    if(btnSimpan){btnSimpan.disabled=false;btnSimpan.textContent='Simpan Dokumen';}
   }
-
-  const newDoc={id:Date.now(),name:name,cat:cat,date:date,fmt:fmt,size:size,file:file,driveFileId:driveFileId};
-  DOCS.unshift(newDoc);
-  await saveToDB();
-  updateCounts();
-  updateYearFilter();
-  renderTable();
-
-  closeUploadBtn();
-  if(driveFileId){showToast('✅ Dokumen berhasil disimpan ke Google Drive!');}
-  else if(file){showToast('⚠ Upload file gagal, metadata tetap disimpan.');}
-  else{showToast('✅ Dokumen berhasil disimpan!');}
 }
 
 function showToast(msg){
@@ -1230,6 +1240,10 @@ function closeEditBtn(){
   document.getElementById('modal-edit').classList.remove('open');
   editDocId = null;
   editNewFile = null;
+  document.getElementById('edit-file-chosen').textContent='Biarkan kosong jika tidak ingin mengganti file';
+  // Selalu reset tombol Simpan Perubahan
+  const btn = document.querySelector('#modal-edit .btn-primary-full');
+  if(btn){ btn.disabled=false; btn.textContent='Simpan Perubahan'; }
 }
 
 function editFileChosen(inp){
@@ -1253,30 +1267,37 @@ async function saveEdit(){
   const btnSimpan=document.querySelector('#modal-edit .btn-primary-full');
   if(btnSimpan){btnSimpan.disabled=true;btnSimpan.textContent='⏳ Menyimpan...';}
 
-  DOCS[idx].name = name;
-  DOCS[idx].cat  = cat;
-  DOCS[idx].date = date;
+  try {
+    DOCS[idx].name = name;
+    DOCS[idx].cat  = cat;
+    DOCS[idx].date = date;
 
-  let uploadOk=null;
-  if(editNewFile){
-    showToast('⏳ Mengupload file baru ke Google Drive...');
-    const driveFileId=await uploadFileToDrive(editNewFile,name,DOCS[idx].cat);
-    DOCS[idx].file=editNewFile;
-    DOCS[idx].fmt=editNewFile.name.split('.').pop().toUpperCase();
-    DOCS[idx].size=Math.round(editNewFile.size/1024)+' KB';
-    DOCS[idx].driveFileId=driveFileId;
-    uploadOk=!!driveFileId;
+    let uploadOk=null;
+    if(editNewFile){
+      showToast('⏳ Mengupload file baru ke Google Drive...');
+      const driveFileId=await uploadFileToDrive(editNewFile,name,DOCS[idx].cat);
+      DOCS[idx].file=editNewFile;
+      DOCS[idx].fmt=editNewFile.name.split('.').pop().toUpperCase();
+      DOCS[idx].size=Math.round(editNewFile.size/1024)+' KB';
+      DOCS[idx].driveFileId=driveFileId;
+      uploadOk=!!driveFileId;
+    }
+
+    await saveToDB();
+    updateCounts();
+    updateYearFilter();
+    renderTable();
+
+    closeEditBtn();
+    if(uploadOk===true){showToast('✅ Dokumen & file berhasil diperbarui di Google Drive!');}
+    else if(uploadOk===false){showToast('⚠ Upload file gagal, metadata tetap diperbarui.');}
+    else{showToast('✅ Dokumen "'+name+'" berhasil diperbarui!');}
+  } catch(e) {
+    console.error('saveEdit error:', e);
+    showToast('⚠ Terjadi kesalahan: ' + e.message);
+    // Reset tombol agar bisa dicoba lagi
+    if(btnSimpan){btnSimpan.disabled=false;btnSimpan.textContent='Simpan Perubahan';}
   }
-
-  await saveToDB();
-  updateCounts();
-  updateYearFilter();
-  renderTable();
-
-  closeEditBtn();
-  if(uploadOk===true){showToast('✅ Dokumen & file berhasil diperbarui di Google Drive!');}
-  else if(uploadOk===false){showToast('⚠ Upload file gagal, metadata tetap diperbarui.');}
-  else{showToast('✅ Dokumen "'+name+'" berhasil diperbarui!');}
 }
 
 // ── INISIALISASI: Muat data lalu render ──
