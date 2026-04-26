@@ -113,7 +113,8 @@ tr:hover td{background:#fafbff}
   .toolbar{padding:10px 16px;gap:8px}
   .content{padding:14px 16px}
   .stats-row{grid-template-columns:1fr 1fr;gap:8px}
-  /* Sembunyikan kolom Tanggal, Format, Ukuran — tapi BUKAN Unduh & Preview */
+  /* Sembunyikan kolom Kategori, Tanggal, Format, Ukuran di mobile */
+  th:nth-child(2),td:nth-child(2),
   th:nth-child(3),td:nth-child(3),
   th:nth-child(4),td:nth-child(4),
   th:nth-child(5),td:nth-child(5){display:none}
@@ -296,7 +297,7 @@ function renderTable() {
       ? '<button class="btn-preview-pub" onclick="openPreview(\''+d.driveFileId+'\',\''+nameEsc+'\')"><svg viewBox=\"0 0 24 24\"><path d=\"M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z\"/></svg>Preview</button>'
       : '';
     const unduh = d.driveFileId
-      ? '<a class="btn-unduh" href="https://drive.google.com/uc?export=download&id=' + d.driveFileId + '" target="_blank"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5z"/></svg>Unduh</a>'
+      ? '<a class="btn-unduh" onclick="downloadFile(event,\''+d.driveFileId+'\',\''+nameEsc+'.'+(d.fmt||'pdf').toLowerCase()+'\')" href="#"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5z"/></svg>Unduh</a>'
       : '<span class="btn-unduh disabled">Tidak tersedia</span>';
     return '<tr>'
       + '<td><div class="row-name"><div class="doc-icon ' + cls + '">' + fmt + '</div><span class="doc-title">' + d.name + '</span></div></td>'
@@ -322,19 +323,63 @@ function updateStats() {
 }
 
 // ── Preview Dokumen ──
+let currentPreviewId = '';
+let currentPreviewName = '';
+
 function openPreview(driveFileId, docName) {
+  currentPreviewId   = driveFileId;
+  currentPreviewName = docName;
   document.getElementById('preview-title').textContent = docName;
-  // Google Drive viewer bisa preview PDF, DOCX, XLSX, gambar
   const viewerUrl = 'https://drive.google.com/file/d/' + driveFileId + '/preview';
   document.getElementById('preview-iframe').src = viewerUrl;
-  document.getElementById('preview-unduh-btn').href =
-    'https://drive.google.com/uc?export=download&id=' + driveFileId;
   document.getElementById('modal-preview').classList.add('open');
 }
 
 function closePreview() {
   document.getElementById('modal-preview').classList.remove('open');
   document.getElementById('preview-iframe').src = '';
+}
+
+// ── Download file yang bisa dibuka di WPS, PDF viewer, dll ──
+async function downloadFile(e, driveFileId, fileName) {
+  e.preventDefault();
+  if (!driveFileId) return;
+
+  // Tampilkan loading
+  const btn = e.currentTarget || e.target;
+  const origText = btn.innerHTML;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" width="11" height="11" fill="white"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg> Menyiapkan...';
+  btn.style.opacity = '0.7';
+
+  try {
+    // Fetch file via API key — ini menghasilkan file asli bukan HTML redirect
+    const url = 'https://www.googleapis.com/drive/v3/files/' + driveFileId
+      + '?alt=media&key=' + GD_API_KEY;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+
+    // Buat link download dengan nama file yang benar
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = fileName || 'dokumen';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // Cleanup
+    setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 5000);
+  } catch(err) {
+    console.error('Download error:', err);
+    // Fallback: buka di tab baru jika fetch gagal
+    window.open('https://drive.google.com/uc?export=download&confirm=t&id=' + driveFileId, '_blank');
+  } finally {
+    btn.innerHTML = origText;
+    btn.style.opacity = '1';
+  }
 }
 
 // Tutup modal saat klik di luar
@@ -377,10 +422,10 @@ loadDocs();
       <iframe id="preview-iframe" src="" allowfullscreen></iframe>
     </div>
     <div class="modal-footer">
-      <a id="preview-unduh-btn" href="#" target="_blank" class="btn-unduh">
+      <button onclick="downloadFile(event, currentPreviewId, currentPreviewName)" class="btn-unduh">
         <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5z"/></svg>
         Unduh Dokumen
-      </a>
+      </button>
     </div>
   </div>
 </div>
