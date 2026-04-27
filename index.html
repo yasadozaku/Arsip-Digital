@@ -288,6 +288,11 @@
         Peraturan
         <span class="nav-count" id="nav-count-peraturan">0</span>
       </button>
+      <button class="nav-item" onclick="filterCat('surat-masuk',this)">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        Surat Masuk
+        <span class="nav-count" id="nav-count-surat-masuk">0</span>
+      </button>
       <button class="nav-item" onclick="filterCat('arsip',this)">
         <svg viewBox="0 0 24 24"><path d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19a2 2 0 002 2h14a2 2 0 002-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5L6.5 12H10v-2h4v2h3.5L12 17.5zM5.12 5l.81-1h12l.94 1H5.12z"/></svg>
         Arsip
@@ -351,7 +356,7 @@
         </div>
         <div class="stat-card">
           <div class="label">Total Kategori</div>
-          <div class="number">12</div>
+          <div class="number">13</div>
           <div class="sub">Jenis surat & arsip</div>
         </div>
         <div class="stat-card">
@@ -455,6 +460,7 @@
           <option value="surat-cuti-tahunan">Surat Cuti Tahunan</option>
           <option value="arsip">Arsip</option>
           <option value="peraturan">Peraturan</option>
+          <option value="surat-masuk">Surat Masuk</option>
           <option value="lainnya">Lainnya</option>
         </select>
       </div>
@@ -507,6 +513,7 @@
           <option value="surat-cuti-tahunan">Surat Cuti Tahunan</option>
           <option value="arsip">Arsip</option>
           <option value="peraturan">Peraturan</option>
+          <option value="surat-masuk">Surat Masuk</option>
           <option value="lainnya">Lainnya</option>
         </select>
       </div>
@@ -539,6 +546,7 @@ const CATS = {
   'surat-cuti-tahunan':'Surat Cuti Tahunan',
   'arsip':'Arsip',
   'peraturan':'Peraturan',
+  'surat-masuk':'Surat Masuk',
   'lainnya':'Lainnya'
 };
 
@@ -547,7 +555,7 @@ const BADGE = {
   'surat-permohonan-ttd':'b-purple','surat-permohonan-konsumsi':'b-coral',
   'surat-undangan':'b-pink','surat-tugas-pengawasan':'b-green',
   'surat-tugas-dinas':'b-gray','surat-tugas-pelatihan':'b-teal','surat-cuti-tahunan':'b-amber',
-  'arsip':'b-blue','peraturan':'b-purple','lainnya':'b-gray'
+  'arsip':'b-blue','peraturan':'b-purple','surat-masuk':'b-teal','lainnya':'b-gray'
 };
 
 // ══════════════════════════════════════════════════
