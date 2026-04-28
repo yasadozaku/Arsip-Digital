@@ -605,8 +605,6 @@ td{position:relative}
 
 
 <script>
-const PER_PAGE = 15;
-
 const CATS = {
   'semua':'Semua Dokumen',
   'sertifikat':'Sertifikat',
@@ -1484,34 +1482,7 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// Init auto-load
-(async () => {
-  DOCS = await loadFromDrive();
-  updateCounts();
-  updateYearFilter();
-  renderTable();
-  try {
-    setLoadingState(true);
-    const token = await getGDToken();
-    const res   = await fetch('https://www.googleapis.com/drive/v3/files/' + GD_FILE_ID + '?alt=media', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    if (res.ok) {
-      const parsed = await res.json();
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        DOCS = parsed.map(function(d) { return Object.assign({}, d, {file:null}); });
-        localStorage.setItem('arsip_digital_docs_v1', JSON.stringify(DOCS));
-        updateCounts();
-        updateYearFilter();
-        renderTable();
-      }
-    }
-  } catch(e) {
-    console.warn('Auto-load gagal:', e.message);
-  } finally {
-    setLoadingState(false);
-  }
-})();
+// (duplicate init block removed)
 </script>
 </body>
 </html>
