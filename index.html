@@ -991,10 +991,11 @@ const PER_PAGE = 20;
 function filterCat(cat, btn){
   activeCat = cat;
   currentPage = 1;
-  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.remove('active'); });
   if(btn) btn.classList.add('active');
-  document.getElementById('page-title').textContent = CATS[cat]||cat;
-  document.getElementById('table-title').textContent = CATS[cat]||cat;
+  // Update judul tabel
+  var titleEl = document.getElementById('page-title');
+  if(titleEl) titleEl.textContent = CATS[cat]||'Semua Dokumen';
   renderTable();
 }
 
@@ -1465,30 +1466,41 @@ document.addEventListener('click', function(e) {
 
 // Init auto-load
 (async () => {
-  DOCS = await loadFromDrive();
+  // Step 1: Muat dari localStorage DULU (instant, tidak perlu login)
+  try {
+    var local = localStorage.getItem('arsip_digital_docs_v1');
+    if (local) {
+      var parsed = JSON.parse(local);
+      if (Array.isArray(parsed)) {
+        DOCS = parsed.map(function(d){ return Object.assign({},d,{file:null}); });
+      }
+    }
+  } catch(e) { console.warn('localStorage load error:', e); }
+
+  // Tampilkan data lokal dulu
   updateCounts();
   updateYearFilter();
   renderTable();
+
+  // Step 2: Auto-sync dari Drive di background (tidak blokir UI)
   try {
-    setLoadingState(true);
-    const token = await getGDToken();
-    const res   = await fetch('https://www.googleapis.com/drive/v3/files/' + GD_FILE_ID + '?alt=media', {
+    var token = await getGDToken();
+    var res   = await fetch('https://www.googleapis.com/drive/v3/files/' + GD_FILE_ID + '?alt=media', {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     if (res.ok) {
-      const parsed = await res.json();
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        DOCS = parsed.map(function(d) { return Object.assign({}, d, {file:null}); });
+      var driveData = await res.json();
+      if (Array.isArray(driveData) && driveData.length > 0) {
+        DOCS = driveData.map(function(d){ return Object.assign({},d,{file:null}); });
         localStorage.setItem('arsip_digital_docs_v1', JSON.stringify(DOCS));
         updateCounts();
         updateYearFilter();
         renderTable();
+        showToast('✅ Data diperbarui dari Google Drive');
       }
     }
   } catch(e) {
-    console.warn('Auto-load gagal:', e.message);
-  } finally {
-    setLoadingState(false);
+    console.warn('Auto-sync Drive gagal (pakai data lokal):', e.message);
   }
 })();
 </script>
