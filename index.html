@@ -81,9 +81,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .filter-row{display:flex;align-items:flex-end;gap:10px;margin-bottom:16px;flex-wrap:wrap}
 .filter-group{display:flex;flex-direction:column;gap:4px}
 .filter-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
-.date-wrap{display:flex;align-items:center;gap:6px;background:white;border:1.5px solid var(--border);border-radius:8px;padding:7px 12px}
-.date-wrap input{border:none;background:transparent;font-size:12px;color:var(--text);outline:none;font-family:inherit;width:108px}
-.date-wrap svg{width:13px;height:13px;fill:#94a3b8;flex-shrink:0}
+
 .sel{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;background:white;font-size:12px;color:var(--text);outline:none;font-family:inherit;cursor:pointer}
 .btn-reset{display:flex;align-items:center;gap:6px;padding:8px 14px;background:white;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s}
 .btn-reset:hover{border-color:var(--red);color:var(--red)}
@@ -396,15 +394,6 @@ td{position:relative}
     <!-- FILTER ROW -->
     <div class="filter-row">
       <div class="filter-group">
-        <div class="filter-label">Rentang Tanggal</div>
-        <div class="date-wrap">
-          <input type="date" id="date-from" onchange="currentPage=1;renderTable()">
-          <span style="color:#94a3b8;font-size:11px">—</span>
-          <input type="date" id="date-to" onchange="currentPage=1;renderTable()">
-          <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
-        </div>
-      </div>
-      <div class="filter-group">
         <div class="filter-label">Format File</div>
         <select class="sel" id="fmt-filter" onchange="currentPage=1;renderTable()">
           <option value="">Semua Format</option>
@@ -605,7 +594,6 @@ td{position:relative}
 
 
 <script>
-const PER_PAGE = 15;
 
 const CATS = {
   'semua':'Semua Dokumen',
@@ -1050,12 +1038,7 @@ function updateCounts(){
 }
 
 function renderTable(){
-  // Apply date range filter
-  const dateFrom = (document.getElementById('date-from')||{}).value||'';
-  const dateTo   = (document.getElementById('date-to')||{}).value||'';
   let rows = getFiltered();
-  if(dateFrom) rows = rows.filter(d => d.date && d.date >= dateFrom);
-  if(dateTo)   rows = rows.filter(d => d.date && d.date <= dateTo);
 
   const total = rows.length;
   const pages = Math.max(1,Math.ceil(total/PER_PAGE));
@@ -1146,12 +1129,8 @@ function closeAllMoreMenus() {
   document.querySelectorAll('.more-menu').forEach(m => m.style.display='none');
 }
 function resetFilter() {
-  const df = document.getElementById('date-from');
-  const dt = document.getElementById('date-to');
   const ff = document.getElementById('fmt-filter');
   const yr = document.getElementById('year-filter');
-  if(df) df.value='';
-  if(dt) dt.value='';
   if(ff) ff.value='';
   if(yr) yr.value='';
   currentPage=1;
