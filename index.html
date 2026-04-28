@@ -994,6 +994,15 @@ const PER_PAGE = 20;
 function filterCat(cat, btn){
   activeCat = cat;
   currentPage = 1;
+  // Reset semua filter saat ganti kategori
+  const df = document.getElementById('date-from');
+  const dt = document.getElementById('date-to');
+  const ff = document.getElementById('fmt-filter');
+  const sr = document.getElementById('search');
+  if(df) df.value = '';
+  if(dt) dt.value = '';
+  if(ff) ff.value = '';
+  if(sr) sr.value = '';
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
   document.getElementById('page-title').textContent = CATS[cat]||cat;
