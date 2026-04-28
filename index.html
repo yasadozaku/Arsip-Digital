@@ -50,7 +50,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .btn-tambah svg{width:14px;height:14px;fill:white}
 
 /* SEARCH */
-.search-wrap{background:white;padding:10px 24px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:0}
+.search-wrap{background:white;padding:10px 24px;border-bottom:1px solid var(--border)}
 .search-inner{display:flex;align-items:center;gap:10px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px}
 .search-inner svg{width:15px;height:15px;fill:#94a3b8;flex-shrink:0}
 .search-inner input{border:none;background:transparent;font-size:13px;color:var(--text);width:100%;outline:none;font-family:inherit}
@@ -74,12 +74,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .kpi-sub{font-size:10.5px;color:var(--muted);margin-top:3px}
 .kpi-curve{position:absolute;bottom:0;right:0;pointer-events:none}
 
-.search-filter-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.search-filter-row .search-inner{flex:1;min-width:200px}
-.filter-inline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.filter-inline .date-wrap{padding:6px 10px}
-.filter-inline .sel{padding:7px 10px;font-size:12px}
-.filter-inline .btn-reset{padding:7px 12px;font-size:12px}
 /* SAVE INDICATOR */
 .save-indicator{font-size:11px;color:#27ae60;display:flex;align-items:center;gap:4px;opacity:0;transition:opacity .4s;white-space:nowrap}
 
@@ -339,31 +333,11 @@ td{position:relative}
     </div>
   </div>
 
-  <!-- SEARCH + FILTER BAR -->
+  <!-- SEARCH -->
   <div class="search-wrap">
-    <div class="search-filter-row">
-      <div class="search-inner">
-        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-        <input type="text" id="search" placeholder="Cari judul, nomor surat, pengirim, atau keterangan..." oninput="currentPage=1;renderTable()">
-      </div>
-      <div class="filter-inline">
-        <div class="date-wrap">
-          <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#94a3b8;flex-shrink:0"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
-          <input type="date" id="date-from" onchange="currentPage=1;renderTable()">
-          <span style="color:#94a3b8;font-size:11px">—</span>
-          <input type="date" id="date-to" onchange="currentPage=1;renderTable()">
-        </div>
-        <select class="sel" id="fmt-filter" onchange="currentPage=1;renderTable()">
-          <option value="">Semua Format</option>
-          <option value="PDF">PDF</option>
-          <option value="DOCX">Word (DOCX)</option>
-          <option value="XLSX">Excel (XLSX)</option>
-        </select>
-        <button class="btn-reset" onclick="resetFilter()">
-          <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.96 7.96 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-          Reset
-        </button>
-      </div>
+    <div class="search-inner">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input type="text" id="search" placeholder="Cari judul, nomor surat, pengirim, atau keterangan..." oninput="currentPage=1;renderTable()">
     </div>
   </div>
 
@@ -418,6 +392,39 @@ td{position:relative}
         </div>
       </div>
     </div>
+
+    <!-- FILTER ROW -->
+    <div class="filter-row">
+      <div class="filter-group">
+        <div class="filter-label">Rentang Tanggal</div>
+        <div class="date-wrap">
+          <input type="date" id="date-from" onchange="currentPage=1;renderTable()">
+          <span style="color:#94a3b8;font-size:11px">—</span>
+          <input type="date" id="date-to" onchange="currentPage=1;renderTable()">
+          <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+        </div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Format File</div>
+        <select class="sel" id="fmt-filter" onchange="currentPage=1;renderTable()">
+          <option value="">Semua Format</option>
+          <option value="PDF">PDF</option>
+          <option value="DOCX">Word (DOCX)</option>
+          <option value="XLSX">Excel (XLSX)</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Tahun</div>
+        <select class="sel" id="year-filter" onchange="currentPage=1;renderTable()">
+          <option value="">Semua Tahun</option>
+        </select>
+      </div>
+      <button class="btn-reset" onclick="resetFilter()">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.96 7.96 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        Reset Filter
+      </button>
+    </div>
+
     <!-- TABLE CARD -->
     <div class="table-card">
       <div class="table-top">
@@ -598,6 +605,8 @@ td{position:relative}
 
 
 <script>
+const PER_PAGE = 15;
+
 const CATS = {
   'semua':'Semua Dokumen',
   'sertifikat':'Sertifikat',
@@ -889,8 +898,7 @@ async function loadFromDrive() {
       }
     }
   } catch(_) {}
-  // Fallback ke DEMO_DOCS jika localStorage kosong
-  return DEMO_DOCS.map(function(d) { return Object.assign({}, d, { file: null }); });
+  return [];
 }
 
 // ── Sync FROM Drive (tombol manual) ──
@@ -946,6 +954,7 @@ function driveViewUrl(driveFileId) {
 }
 
 function setLoadingState(loading) {
+  // Tidak pakai overlay — cukup teks di tbody agar tidak memblokir klik
   const tb = document.getElementById('tbody');
   if (!tb) return;
   if (loading) {
@@ -959,10 +968,8 @@ function setLoadingState(loading) {
         Memuat data...
       </div>
     </td></tr>`;
-  } else {
-    // Selalu render ulang saat loading selesai agar spinner hilang
-    renderTable();
   }
+  // Saat loading=false, renderTable() akan mengisi tbody secara otomatis
 }
 
 const DEMO_DOCS = [
@@ -996,15 +1003,6 @@ const PER_PAGE = 20;
 function filterCat(cat, btn){
   activeCat = cat;
   currentPage = 1;
-  // Reset semua filter saat ganti kategori
-  const df = document.getElementById('date-from');
-  const dt = document.getElementById('date-to');
-  const ff = document.getElementById('fmt-filter');
-  const sr = document.getElementById('search');
-  if(df) df.value = '';
-  if(dt) dt.value = '';
-  if(ff) ff.value = '';
-  if(sr) sr.value = '';
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
   document.getElementById('page-title').textContent = CATS[cat]||cat;
@@ -1013,18 +1011,17 @@ function filterCat(cat, btn){
 }
 
 function getFiltered(){
-  const q = (document.getElementById('search')||{value:''}).value.toLowerCase();
+  const q = document.getElementById('search').value.toLowerCase();
+  const yr = document.getElementById('year-filter').value;
   const fmt = document.getElementById('fmt-filter') ? document.getElementById('fmt-filter').value.toUpperCase() : '';
-  const filtered = DOCS.filter(d=>{
-    // Filter kategori
-    if(activeCat !== 'semua' && (d.cat||'') !== activeCat) return false;
-    // Filter pencarian
-    if(q && !d.name.toLowerCase().includes(q)) return false;
-    // Filter format
-    if(fmt && (d.fmt||'').toUpperCase() !== fmt) return false;
+  return DOCS.filter(d=>{
+    if(activeCat!=='semua'&&d.cat!==activeCat)return false;
+    if(yr&&!d.date.startsWith(yr))return false;
+    if(q&&!d.name.toLowerCase().includes(q))return false;
+    if(fmt&&(d.fmt||'').toUpperCase()!==fmt)return false;
     return true;
-  });
-  return filtered.sort((a,b)=>{
+  }).sort((a,b)=>{
+    // Urutkan berdasarkan tanggal surat: terbaru di atas
     const da = a.date||'';
     const db = b.date||'';
     if(da>db) return -1;
@@ -1036,7 +1033,7 @@ function getFiltered(){
 function updateCounts(){
   Object.keys(CATS).forEach(c=>{
     const el = document.getElementById('nav-count-'+c);
-    if(el) el.textContent = c==='semua' ? DOCS.length : DOCS.filter(d=>(d.cat||'')=== c).length;
+    if(el) el.textContent = c==='semua'?DOCS.length:DOCS.filter(d=>d.cat===c).length;
   });
   document.getElementById('s-total').textContent = DOCS.length;
   // Gunakan bulan & tahun saat ini secara dinamis
@@ -1053,11 +1050,9 @@ function updateCounts(){
 }
 
 function renderTable(){
-  // Apply date range filter (format input: yyyy-mm-dd)
-  const dfEl = document.getElementById('date-from');
-  const dtEl = document.getElementById('date-to');
-  const dateFrom = dfEl ? dfEl.value : '';
-  const dateTo   = dtEl ? dtEl.value : '';
+  // Apply date range filter
+  const dateFrom = (document.getElementById('date-from')||{}).value||'';
+  const dateTo   = (document.getElementById('date-to')||{}).value||'';
   let rows = getFiltered();
   if(dateFrom) rows = rows.filter(d => d.date && d.date >= dateFrom);
   if(dateTo)   rows = rows.filter(d => d.date && d.date <= dateTo);
@@ -1154,9 +1149,11 @@ function resetFilter() {
   const df = document.getElementById('date-from');
   const dt = document.getElementById('date-to');
   const ff = document.getElementById('fmt-filter');
+  const yr = document.getElementById('year-filter');
   if(df) df.value='';
   if(dt) dt.value='';
   if(ff) ff.value='';
+  if(yr) yr.value='';
   currentPage=1;
   renderTable();
 }
@@ -1237,7 +1234,6 @@ function closePrevBtn(){
 
 function updateYearFilter(){
   const sel = document.getElementById('year-filter');
-  if(!sel) return;
   const current = sel.value;
   const years = [...new Set(DOCS.map(d => d.date.substring(0,4)).filter(Boolean))]
     .sort((a,b) => b - a);
@@ -1442,14 +1438,35 @@ async function saveEdit(){
   }
 }
 
-// ── INISIALISASI ──
+// ── INISIALISASI: Muat data lalu render ──
 (async () => {
-  // 1. Load dari localStorage dulu (instant, tidak perlu login)
+  // 1. Tampilkan dulu dari localStorage (instant, tanpa login)
   DOCS = await loadFromDrive();
   updateCounts();
   updateYearFilter();
   renderTable();
-  // Selesai — Drive sync hanya via tombol manual
+
+  // 2. Auto-load dari Drive di background saat halaman dibuka
+  try {
+    setLoadingState(true);
+    const token = await getGDToken();
+    const res   = await fetch('https://www.googleapis.com/drive/v3/files/' + GD_FILE_ID + '?alt=media', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.ok) {
+      const parsed = await res.json();
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        DOCS = parsed.map(function(d) { return Object.assign({}, d, {file:null}); });
+        localStorage.setItem('arsip_digital_docs_v1', JSON.stringify(DOCS));
+        updateCounts();
+        updateYearFilter();
+        renderTable();
+      }
+    }
+  } catch(e) {
+    // Belum login atau tidak ada koneksi — pakai data lokal
+    console.warn('Auto-load dari Drive gagal:', e.message);
+  }
 })();
 
 document.addEventListener('keydown', e=>{
@@ -1467,7 +1484,34 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// (duplicate init removed)
+// Init auto-load
+(async () => {
+  DOCS = await loadFromDrive();
+  updateCounts();
+  updateYearFilter();
+  renderTable();
+  try {
+    setLoadingState(true);
+    const token = await getGDToken();
+    const res   = await fetch('https://www.googleapis.com/drive/v3/files/' + GD_FILE_ID + '?alt=media', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.ok) {
+      const parsed = await res.json();
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        DOCS = parsed.map(function(d) { return Object.assign({}, d, {file:null}); });
+        localStorage.setItem('arsip_digital_docs_v1', JSON.stringify(DOCS));
+        updateCounts();
+        updateYearFilter();
+        renderTable();
+      }
+    }
+  } catch(e) {
+    console.warn('Auto-load gagal:', e.message);
+  } finally {
+    setLoadingState(false);
+  }
+})();
 </script>
 </body>
 </html>
