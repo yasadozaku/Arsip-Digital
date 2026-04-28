@@ -945,7 +945,6 @@ function driveViewUrl(driveFileId) {
 }
 
 function setLoadingState(loading) {
-  // Tidak pakai overlay — cukup teks di tbody agar tidak memblokir klik
   const tb = document.getElementById('tbody');
   if (!tb) return;
   if (loading) {
@@ -959,8 +958,10 @@ function setLoadingState(loading) {
         Memuat data...
       </div>
     </td></tr>`;
+  } else {
+    // Selalu render ulang saat loading selesai agar spinner hilang
+    renderTable();
   }
-  // Saat loading=false, renderTable() akan mengisi tbody secara otomatis
 }
 
 const DEMO_DOCS = [
@@ -1437,35 +1438,14 @@ async function saveEdit(){
   }
 }
 
-// ── INISIALISASI: Muat data lalu render ──
+// ── INISIALISASI ──
 (async () => {
-  // 1. Tampilkan dulu dari localStorage (instant, tanpa login)
+  // 1. Load dari localStorage dulu (instant, tidak perlu login)
   DOCS = await loadFromDrive();
   updateCounts();
   updateYearFilter();
   renderTable();
-
-  // 2. Auto-load dari Drive di background saat halaman dibuka
-  try {
-    setLoadingState(true);
-    const token = await getGDToken();
-    const res   = await fetch('https://www.googleapis.com/drive/v3/files/' + GD_FILE_ID + '?alt=media', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    if (res.ok) {
-      const parsed = await res.json();
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        DOCS = parsed.map(function(d) { return Object.assign({}, d, {file:null}); });
-        localStorage.setItem('arsip_digital_docs_v1', JSON.stringify(DOCS));
-        updateCounts();
-        updateYearFilter();
-        renderTable();
-      }
-    }
-  } catch(e) {
-    // Belum login atau tidak ada koneksi — pakai data lokal
-    console.warn('Auto-load dari Drive gagal:', e.message);
-  }
+  // Selesai — Drive sync hanya via tombol manual
 })();
 
 document.addEventListener('keydown', e=>{
@@ -1483,34 +1463,7 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// Init auto-load
-(async () => {
-  DOCS = await loadFromDrive();
-  updateCounts();
-  updateYearFilter();
-  renderTable();
-  try {
-    setLoadingState(true);
-    const token = await getGDToken();
-    const res   = await fetch('https://www.googleapis.com/drive/v3/files/' + GD_FILE_ID + '?alt=media', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    if (res.ok) {
-      const parsed = await res.json();
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        DOCS = parsed.map(function(d) { return Object.assign({}, d, {file:null}); });
-        localStorage.setItem('arsip_digital_docs_v1', JSON.stringify(DOCS));
-        updateCounts();
-        updateYearFilter();
-        renderTable();
-      }
-    }
-  } catch(e) {
-    console.warn('Auto-load gagal:', e.message);
-  } finally {
-    setLoadingState(false);
-  }
-})();
+// (duplicate init removed)
 </script>
 </body>
 </html>
