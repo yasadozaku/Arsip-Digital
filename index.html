@@ -3,399 +3,467 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Arsip Digital — Sistem Manajemen Dokumen</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Segoe UI',system-ui,sans-serif;background:#f4f6f9;color:#1a1a2e;min-height:100vh}
-  a{text-decoration:none;color:inherit}
-
-  /* Sidebar */
-  .layout{display:flex;min-height:100vh}
-  .sidebar{width:240px;background:#0f3460;color:white;display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:50}
-  .sidebar-logo{padding:20px 16px 18px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:11px}
-  .sidebar-logo .icon{width:38px;height:38px;background:#e94560;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(233,69,96,0.35)}
-  .sidebar-logo .icon svg{width:21px;height:21px;fill:white}
-  .sidebar-logo .logo-text h1{font-size:13.5px;font-weight:800;color:white;line-height:1.2;letter-spacing:-.01em}
-  .sidebar-logo .logo-text p{font-size:9.5px;color:rgba(255,255,255,0.45);margin-top:2px;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
-  .sidebar-nav{padding:16px 12px;flex:1}
-  .nav-label{font-size:10px;font-weight:600;color:rgba(255,255,255,0.4);letter-spacing:.08em;text-transform:uppercase;padding:0 8px;margin:12px 0 6px}
-  .nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.75);transition:all .15s;margin-bottom:2px;border:none;background:transparent;width:100%;text-align:left}
-  .nav-item:hover{background:rgba(255,255,255,0.1);color:white}
-  .nav-item.active{background:#e94560;color:white}
-  .nav-item svg{width:15px;height:15px;fill:currentColor;flex-shrink:0}
-  .nav-count{margin-left:auto;background:rgba(255,255,255,0.15);border-radius:20px;font-size:10px;padding:2px 7px;font-weight:500}
-  .nav-item.active .nav-count{background:rgba(255,255,255,0.25)}
-
-  /* Main */
-  .main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh}
-  .topbar{background:white;padding:16px 28px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #e8ecf0;position:sticky;top:0;z-index:40}
-  .topbar h2{font-size:16px;font-weight:600;color:#1a1a2e;flex:1}
-  .search-wrap{display:flex;align-items:center;gap:8px;background:#f4f6f9;border:1px solid #e8ecf0;border-radius:8px;padding:8px 14px;width:280px}
-  .search-wrap svg{width:15px;height:15px;fill:#999;flex-shrink:0}
-  .search-wrap input{border:none;background:transparent;font-size:13px;color:#1a1a2e;width:100%;outline:none}
-  .search-wrap input::placeholder{color:#aaa}
-  .topbar-right{display:flex;align-items:center;gap:10px}
-  .year-select{padding:8px 12px;border:1px solid #e8ecf0;border-radius:8px;background:white;font-size:13px;color:#444;cursor:pointer;outline:none}
-  .btn-add{display:flex;align-items:center;gap:6px;padding:8px 16px;background:#e94560;color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
-  .btn-add:hover{background:#c73652}
-  .btn-add svg{width:14px;height:14px;fill:white}
-
-  /* Content */
-  .content{padding:24px 28px;flex:1}
-
-  /* Stats */
-  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-  .stat-card{background:white;border-radius:12px;padding:18px 20px;border:1px solid #e8ecf0}
-  .stat-card .label{font-size:12px;color:#888;margin-bottom:6px}
-  .stat-card .number{font-size:26px;font-weight:700;color:#1a1a2e}
-  .stat-card .sub{font-size:11px;color:#aaa;margin-top:4px}
-  .stat-card.accent{background:linear-gradient(135deg,#0f3460,#16213e);border:none}
-  .stat-card.accent .label,.stat-card.accent .sub{color:rgba(255,255,255,0.6)}
-  .stat-card.accent .number{color:white}
-
-  /* Table card */
-  .card{background:white;border-radius:12px;border:1px solid #e8ecf0;overflow:hidden}
-  .card-head{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between}
-  .card-head h3{font-size:14px;font-weight:600;color:#1a1a2e}
-  .card-head p{font-size:12px;color:#999}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th{padding:11px 16px;text-align:left;font-size:11px;font-weight:600;color:#888;background:#fafbfc;border-bottom:1px solid #f0f0f0;text-transform:uppercase;letter-spacing:.04em}
-  td{padding:13px 16px;border-bottom:1px solid #f7f7f7;color:#333;vertical-align:middle}
-  tr:last-child td{border-bottom:none}
-  tr:hover td{background:#fafbff}
-  .doc-name{display:flex;align-items:center;gap:10px}
-  .doc-icon{width:32px;height:40px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
-  .doc-icon.pdf{background:#fff0f0;color:#e94560;border:1px solid #f5c6cc}
-  .doc-icon.docx{background:#edf4ff;color:#185fa5;border:1px solid #bcd4f5}
-  .doc-icon.xlsx{background:#edfaf3;color:#0f6e56;border:1px solid #9fe1cb}
-  .doc-name-text{font-size:13px;font-weight:500;color:#1a1a2e;line-height:1.4}
-  .doc-name-num{font-size:11px;color:#aaa}
-  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
-  .b-amber{background:#faeeda;color:#633806}
-  .b-blue{background:#e6f1fb;color:#0c447c}
-  .b-teal{background:#e1f5ee;color:#085041}
-  .b-purple{background:#eeedfe;color:#3c3489}
-  .b-coral{background:#faece7;color:#712b13}
-  .b-pink{background:#fbeaf0;color:#72243e}
-  .b-red{background:#fcebeb;color:#791f1f}
-  .b-green{background:#eaf3de;color:#27500a}
-  .b-gray{background:#f1efe8;color:#444441}
-  .actions{display:flex;gap:6px}
-  .btn-sm{padding:5px 11px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;border:1px solid #e8ecf0;background:white;color:#444}
-  .btn-sm:hover{background:#f4f6f9}
-  .btn-sm svg{width:12px;height:12px;fill:currentColor}
-  .btn-dl{background:#0f3460;color:white;border-color:#0f3460}
-  .btn-dl:hover{background:#0a2540}
-  .btn-del{background:#fff0f0;color:#c0392b;border-color:#f5c6cc}
-  .btn-del:hover{background:#c0392b;color:white;border-color:#c0392b}
-  .btn-edit{background:#fff8e6;color:#b06a00;border-color:#f5d98b}
-  .btn-edit:hover{background:#b06a00;color:white;border-color:#b06a00}
-  .empty-row td{text-align:center;padding:40px;color:#aaa;font-size:14px}
-
-  /* Modal */
-  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center}
-  .modal-bg.open{display:flex}
-  .modal{background:white;border-radius:16px;width:92%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
-  .modal-head{padding:20px 24px 16px;border-bottom:1px solid #f0f0f0;display:flex;align-items:flex-start;gap:12px}
-  .modal-head-info{flex:1}
-  .modal-head h3{font-size:15px;font-weight:600;color:#1a1a2e;line-height:1.4}
-  .modal-head p{font-size:12px;color:#aaa;margin-top:3px}
-  .modal-close{width:30px;height:30px;border:1px solid #e8ecf0;border-radius:8px;background:transparent;cursor:pointer;font-size:18px;color:#888;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
-  .modal-close:hover{background:#f4f6f9}
-  .modal-preview{margin:20px 24px;background:#f4f6f9;border-radius:12px;border:1px solid #e8ecf0;padding:32px;text-align:center}
-  .preview-file-icon{width:64px;height:80px;border-radius:6px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.08)}
-  .preview-file-icon.pdf{background:white;color:#e94560;border:1.5px solid #f5c6cc}
-  .preview-file-icon.docx{background:white;color:#185fa5;border:1.5px solid #bcd4f5}
-  .preview-file-icon.xlsx{background:white;color:#0f6e56;border:1.5px solid #9fe1cb}
-  .preview-name{font-size:14px;font-weight:600;color:#1a1a2e;margin-bottom:6px}
-  .preview-sub{font-size:12px;color:#aaa}
-  .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 24px 20px}
-  .meta-item{background:#fafbfc;border:1px solid #f0f0f0;border-radius:10px;padding:12px 14px}
-  .meta-label{font-size:11px;color:#aaa;margin-bottom:4px}
-  .meta-val{font-size:13px;font-weight:600;color:#1a1a2e}
-  .modal-footer{padding:16px 24px;border-top:1px solid #f0f0f0;display:flex;gap:10px}
-  .btn-full{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #e8ecf0;background:white;color:#444;transition:all .15s}
-  .btn-full:hover{background:#f4f6f9}
-  .btn-primary-full{background:#e94560;color:white;border-color:#e94560}
-  .btn-primary-full:hover{background:#c73652}
-
-  /* Upload modal */
-  .upload-area{margin:20px 24px;border:2px dashed #d0d8e8;border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:all .15s}
-  .upload-area:hover{border-color:#0f3460;background:#f8faff}
-  .upload-area svg{width:40px;height:40px;fill:#c0cad8;margin-bottom:10px}
-  .upload-area p{font-size:13px;color:#888}
-  .upload-area span{font-size:12px;color:#aaa}
-  .form-group{padding:0 24px 16px}
-  .form-group label{display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:6px}
-  .form-group input,.form-group select{width:100%;padding:9px 12px;border:1px solid #e8ecf0;border-radius:8px;font-size:13px;color:#1a1a2e;outline:none;background:white}
-  .form-group input:focus,.form-group select:focus{border-color:#0f3460}
-  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 24px 16px}
-  .form-row .form-group{padding:0}
-
-  /* Notification */
-  .toast{position:fixed;bottom:28px;right:28px;background:#1a1a2e;color:white;padding:12px 18px;border-radius:10px;font-size:13px;z-index:300;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none}
-  .toast.show{opacity:1;transform:translateY(0)}
-
-  /* Pagination */
-  .pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid #f0f0f0}
-  .pagination p{font-size:12px;color:#aaa}
-  .page-btns{display:flex;gap:6px}
-  .page-btn{width:30px;height:30px;border:1px solid #e8ecf0;border-radius:6px;background:white;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#555}
-  .page-btn:hover,.page-btn.active{background:#0f3460;color:white;border-color:#0f3460}
-
-  /* ── Sidebar Collapse ── */
-  .sidebar-toggle{
-    position:fixed;top:50%;left:240px;transform:translateY(-50%);
-    width:20px;height:48px;
-    background:#0f3460;
-    border:none;border-radius:0 8px 8px 0;
-    cursor:pointer;z-index:60;
-    display:flex;align-items:center;justify-content:center;
-    color:white;font-size:13px;
-    transition:left .25s ease,background .15s;
-    box-shadow:2px 0 8px rgba(0,0,0,.18);
-  }
-  .sidebar-toggle:hover{background:#e94560}
-  .sidebar-toggle svg{width:12px;height:12px;fill:white;transition:transform .25s}
-
-  /* Collapsed state */
-  body.sidebar-collapsed .sidebar{transform:translateX(-240px)}
-  body.sidebar-collapsed .main{margin-left:0}
-  body.sidebar-collapsed .sidebar-toggle{left:0}
-  body.sidebar-collapsed .sidebar-toggle svg{transform:rotate(180deg)}
-  .sidebar{transition:transform .25s ease}
-  .main{transition:margin-left .25s ease}
-
-  /* ── Full Preview Modal ── */
-  .modal-bg.preview-open{display:flex}
-  .modal-preview-full{
-    background:white;border-radius:16px;
-    width:96%;max-width:900px;
-    height:90vh;
-    display:flex;flex-direction:column;
-    box-shadow:0 20px 60px rgba(0,0,0,.25);
-    overflow:hidden;
-  }
-  .preview-viewer{
-    flex:1;overflow:hidden;
-    background:#f4f6f9;
-    border-top:1px solid #f0f0f0;
-    border-bottom:1px solid #f0f0f0;
-    display:flex;align-items:center;justify-content:center;
-    position:relative;
-  }
-  .preview-viewer iframe{width:100%;height:100%;border:none}
-  .preview-viewer img{max-width:100%;max-height:100%;object-fit:contain}
-  .preview-viewer .no-preview{text-align:center;padding:2rem;color:#aaa}
-  .preview-viewer .no-preview .big-icon{font-size:64px;margin-bottom:12px;display:block}
-  .preview-viewer .no-preview p{font-size:14px;font-weight:500;color:#555;margin-bottom:6px}
-  .preview-viewer .no-preview span{font-size:12px;color:#aaa}
-  .preview-meta-bar{
-    display:flex;gap:10px;flex-wrap:wrap;
-    padding:10px 20px;border-bottom:1px solid #f0f0f0;
-    background:#fafbfc;
-  }
-  .pmeta-chip{background:white;border:1px solid #e8ecf0;border-radius:8px;padding:5px 12px;font-size:11px;color:#555;display:flex;flex-direction:column;gap:1px}
-  .pmeta-chip b{font-size:12px;color:#1a1a2e;font-weight:600}
-
-  @media(max-width:768px){
-    .sidebar{width:200px}
-    .sidebar-toggle{left:200px}
-    body.sidebar-collapsed .sidebar-toggle{left:0}
-    .main{margin-left:200px}
-    body.sidebar-collapsed .main{margin-left:0}
-    .stats-grid{grid-template-columns:1fr 1fr}
-    .content{padding:16px}
-  }
-</style>
+<title>Arsip Surat Digital — Diskopumdag Banyuwangi</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0f3460;--red:#e94560;--bg:#f0f3f8;--border:#e2e8f0;
+  --text:#1a1a2e;--muted:#64748b;--white:#fff;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:13px}
+
+/* ══ SIDEBAR ══ */
+.sidebar{width:248px;background:var(--navy);color:white;display:flex;flex-direction:column;flex-shrink:0;min-height:100vh;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100}
+.sidebar-brand{padding:14px 14px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;cursor:pointer}
+.brand-logo{width:46px;height:46px;flex-shrink:0;border-radius:8px;overflow:hidden;background:white;padding:2px}
+.brand-logo img{width:100%;height:100%;object-fit:contain}
+.brand-text h1{font-size:11.5px;font-weight:800;color:white;line-height:1.3;letter-spacing:.01em;text-transform:uppercase}
+.brand-text p{font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;font-weight:500}
+.sidebar-nav{padding:10px 10px;flex:1}
+.nav-section-label{font-size:9px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase;padding:8px 8px 5px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:8px;font-size:12px;color:rgba(255,255,255,.65);margin-bottom:1px;border:none;background:transparent;width:100%;text-align:left;cursor:pointer;transition:all .15s}
+.nav-item:hover{background:rgba(255,255,255,.08);color:white}
+.nav-item.active{background:var(--red);color:white;box-shadow:0 3px 10px rgba(233,69,96,.3)}
+.nav-item svg{width:15px;height:15px;fill:currentColor;flex-shrink:0;opacity:.75}
+.nav-item.active svg{opacity:1}
+.nav-count{margin-left:auto;background:rgba(255,255,255,.15);border-radius:20px;font-size:9.5px;padding:1px 7px;font-weight:700;min-width:22px;text-align:center}
+.nav-item.active .nav-count{background:rgba(255,255,255,.25)}
+.sidebar-footer{padding:10px 12px 14px;border-top:1px solid rgba(255,255,255,.06)}
+.btn-kelola{display:flex;align-items:center;gap:7px;padding:9px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(255,255,255,.65);font-size:11.5px;font-weight:600;cursor:pointer;width:100%;transition:all .15s}
+.btn-kelola:hover{background:rgba(255,255,255,.12);color:white}
+.btn-kelola svg{width:13px;height:13px;fill:currentColor}
+
+/* ══ MAIN ══ */
+.main{margin-left:248px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:white;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.topbar-title{font-size:16px;font-weight:800;color:var(--text);letter-spacing:-.02em}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.btn-drive{display:flex;align-items:center;gap:6px;padding:8px 13px;border:1.5px solid var(--border);border-radius:8px;background:white;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;transition:all .15s}
+.btn-drive:hover{border-color:#4285F4;color:#4285F4}
+.btn-sync{display:flex;align-items:center;gap:6px;padding:8px 13px;border:1.5px solid var(--border);border-radius:8px;background:white;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;transition:all .15s}
+.btn-sync:hover{border-color:var(--navy);color:var(--navy)}
+.btn-tambah{display:flex;align-items:center;gap:6px;padding:9px 16px;background:#3b82f6;border:none;border-radius:8px;font-size:12.5px;font-weight:700;color:white;cursor:pointer;box-shadow:0 3px 10px rgba(59,130,246,.3);transition:background .15s}
+.btn-tambah:hover{background:#2563eb}
+.btn-tambah svg{width:14px;height:14px;fill:white}
+
+/* SEARCH */
+.search-wrap{background:white;padding:10px 24px;border-bottom:1px solid var(--border)}
+.search-inner{display:flex;align-items:center;gap:10px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px}
+.search-inner svg{width:15px;height:15px;fill:#94a3b8;flex-shrink:0}
+.search-inner input{border:none;background:transparent;font-size:13px;color:var(--text);width:100%;outline:none;font-family:inherit}
+.search-inner input::placeholder{color:#94a3b8}
+
+/* CONTENT */
+.content{padding:20px 24px;flex:1}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi-card{background:white;border-radius:12px;padding:16px 18px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;position:relative;overflow:hidden}
+.kpi-card.c-green{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-color:#bbf7d0}
+.kpi-card.c-blue{background:linear-gradient(135deg,#eff6ff,#dbeafe);border-color:#93c5fd}
+.kpi-card.c-amber{background:linear-gradient(135deg,#fffbeb,#fef3c7);border-color:#fcd34d}
+.kpi-card.c-purple{background:linear-gradient(135deg,#faf5ff,#ede9fe);border-color:#c4b5fd}
+.kpi-icon-box{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.kpi-icon-box svg{width:22px;height:22px}
+.kpi-info{flex:1;min-width:0}
+.kpi-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px}
+.kpi-value{font-size:28px;font-weight:900;letter-spacing:-.04em;line-height:1}
+.kpi-sub{font-size:10.5px;color:var(--muted);margin-top:3px}
+.kpi-curve{position:absolute;bottom:0;right:0;pointer-events:none}
+
+/* SAVE INDICATOR */
+.save-indicator{font-size:11px;color:#27ae60;display:flex;align-items:center;gap:4px;opacity:0;transition:opacity .4s;white-space:nowrap}
+
+/* FILTER ROW */
+.filter-row{display:flex;align-items:flex-end;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.filter-group{display:flex;flex-direction:column;gap:4px}
+.filter-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+.date-wrap{display:flex;align-items:center;gap:6px;background:white;border:1.5px solid var(--border);border-radius:8px;padding:7px 12px}
+.date-wrap input{border:none;background:transparent;font-size:12px;color:var(--text);outline:none;font-family:inherit;width:108px}
+.date-wrap svg{width:13px;height:13px;fill:#94a3b8;flex-shrink:0}
+.sel{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;background:white;font-size:12px;color:var(--text);outline:none;font-family:inherit;cursor:pointer}
+.btn-reset{display:flex;align-items:center;gap:6px;padding:8px 14px;background:white;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s}
+.btn-reset:hover{border-color:var(--red);color:var(--red)}
+.btn-reset svg{width:13px;height:13px;fill:currentColor}
+
+/* TABLE CARD */
+.table-card{background:white;border-radius:12px;border:1px solid var(--border);overflow:hidden}
+.table-top{padding:13px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between}
+.tbl-left{display:flex;align-items:center;gap:8px}
+.tbl-title{font-size:13px;font-weight:800;color:var(--text)}
+.doc-badge{background:#eff6ff;color:#3b82f6;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.sort-row{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted)}
+.sort-row select{border:1.5px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11.5px;color:var(--text);background:white;outline:none;font-family:inherit}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th{padding:9px 14px;font-size:9.5px;font-weight:800;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;border-bottom:1px solid #f1f5f9;background:#fafbfc;text-align:left;white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid #f8fafc;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbff}
+.td-no{color:var(--muted);font-size:12px;font-weight:600;width:36px}
+.doc-cell{display:flex;align-items:center;gap:10px}
+.doc-icon{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;flex-shrink:0;background:#fff0f2;color:var(--red)}
+.doc-icon.docx{background:#e8f0fe;color:#1a56db}
+.doc-icon.xlsx{background:#e8f9ee;color:#1e7e34}
+.doc-name-text{font-size:12.5px;font-weight:600;color:var(--text)}
+.drive-tag{font-size:10px;color:#0f6e56;display:flex;align-items:center;gap:3px;margin-top:2px}
+.drive-tag svg{width:9px;height:9px;fill:#0f6e56}
+.badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
+.b-blue{background:#e8f0fe;color:#1a56db}
+.b-teal{background:#e6f7f4;color:#0e7a60}
+.b-amber{background:#fff8e6;color:#c47000}
+.b-purple{background:#f3e8ff;color:#7c3aed}
+.b-coral{background:#faece7;color:#712b13}
+.b-pink{background:#fce8f3;color:#9d174d}
+.b-green{background:#e6f4ea;color:#1e6b3a}
+.b-gray{background:#f3f4f6;color:#6b7280}
+.td-date{font-size:12px;color:var(--text);white-space:nowrap}
+.td-size{font-size:11.5px;color:var(--muted);font-family:monospace;white-space:nowrap}
+
+/* AKSI */
+.aksi-row{display:flex;align-items:center;gap:2px}
+.aksi-icon{width:30px;height:30px;border:none;background:transparent;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#94a3b8;transition:all .15s}
+.aksi-icon svg{width:15px;height:15px;fill:currentColor}
+.view-btn:hover{background:#eff6ff;color:#3b82f6}
+.dl-btn:hover{background:#e6f4ea;color:#1e7e34}
+.more-btn:hover{background:#f3f4f6;color:var(--text)}
+
+/* MORE MENU */
+.more-menu{position:absolute;right:14px;background:white;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:200;min-width:110px;overflow:hidden}
+.more-menu button{display:flex;align-items:center;gap:7px;width:100%;padding:9px 12px;border:none;background:transparent;font-size:12px;color:var(--text);cursor:pointer;transition:background .1s;font-family:inherit}
+.more-menu button:hover{background:#f4f6f9}
+.more-menu button.menu-danger{color:#e94560}
+.more-menu button.menu-danger:hover{background:#fff0f2}
+td{position:relative}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid #f1f5f9}
+.page-info{font-size:11.5px;color:var(--muted)}
+.page-btns{display:flex;gap:4px}
+.page-btn{width:30px;height:30px;border:1.5px solid var(--border);border-radius:6px;background:white;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.page-btn.active{background:var(--navy);color:white;border-color:var(--navy)}
+.page-btn:hover:not(.active){border-color:var(--navy);color:var(--navy)}
+
+/* MODALS (reuse from original) */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:white;border-radius:14px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-preview-full{background:white;border-radius:14px;width:100%;max-width:800px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f0f2f5}
+.modal-head-info h3{font-size:14px;font-weight:700;color:var(--text)}
+.modal-head-info p{font-size:11px;color:var(--muted);margin-top:2px}
+.modal-close{width:28px;height:28px;border:none;background:#f4f6f9;border-radius:7px;cursor:pointer;font-size:16px;color:#666;display:flex;align-items:center;justify-content:center}
+.preview-meta-bar{display:flex;gap:12px;padding:12px 20px;background:#fafbfc;border-bottom:1px solid #f0f2f5;flex-wrap:wrap}
+.pmeta-chip{display:flex;flex-direction:column;gap:2px}
+.pmeta-chip span{font-size:9.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.pmeta-chip b{font-size:12px;color:var(--text)}
+.preview-viewer{flex:1;overflow:hidden;min-height:400px;display:flex;align-items:center;justify-content:center;background:#f4f6f9}
+.preview-viewer iframe{width:100%;height:500px;border:none}
+.preview-viewer .modal-preview{margin:20px 24px;background:#f4f6f9;border-radius:12px;border:1px solid var(--border);padding:32px;text-align:center}
+.upload-area{border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;margin:16px 20px;transition:border-color .15s;background:#fafbfc}
+.upload-area:hover{border-color:#3b82f6;background:#f0f6ff}
+.upload-area svg{width:32px;height:32px;fill:#94a3b8;margin-bottom:8px}
+.upload-area p{font-size:13px;font-weight:600;color:var(--text)}
+.upload-area span{font-size:11px;color:var(--muted);display:block;margin-top:3px}
+.form-group{padding:0 20px 14px;display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:11.5px;font-weight:700;color:var(--text)}
+.form-group input,.form-group select{padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);outline:none;font-family:inherit;background:white}
+.form-group input:focus,.form-group select:focus{border-color:#3b82f6}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;padding:0 20px 14px}
+.form-row .form-group{padding:0}
+.modal-footer{display:flex;gap:10px;padding:14px 20px;border-top:1px solid #f0f2f5}
+.btn-full{flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:white;color:var(--text);transition:all .15s;font-family:inherit}
+.btn-full:hover{background:#f4f6f9}
+.btn-primary-full{background:var(--navy);color:white;border-color:var(--navy)}
+.btn-primary-full:hover{background:#0a2444}
+.btn-primary-full:disabled{background:#ccc;border-color:#ccc;cursor:not-allowed}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1a2e;color:white;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:9999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;max-width:340px}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* LOADING */
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(15,52,96,.85);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:white}
+.loading-overlay.active{display:flex}
+.spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-row td{text-align:center;padding:40px 20px;color:#aaa}
+</style>
 </head>
 <body>
 
-<div class="layout">
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="icon">
-        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg>
-      </div>
-      <div class="logo-text">
-        <h1>Arsip Digital</h1>
-        <p>Manajemen Dokumen</p>
-      </div>
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-brand" onclick="filterCat('semua',null)">
+    <div class="brand-logo">
+      <img src="data:image/jpeg;base64,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" alt="Logo Banyuwangi">
     </div>
-    <nav class="sidebar-nav">
-      <div class="nav-label">Menu Utama</div>
-      <button class="nav-item active" onclick="filterCat('semua',this)">
-        <svg viewBox="0 0 24 24"><path d="M10 3H4a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1V4a1 1 0 00-1-1zm0 10H4a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1v-6a1 1 0 00-1-1zM20 3h-6a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1V4a1 1 0 00-1-1zm0 10h-6a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1v-6a1 1 0 00-1-1z"/></svg>
-        Semua Dokumen
-        <span class="nav-count" id="nav-count-semua">0</span>
-      </button>
-
-      <div class="nav-label">Kategori</div>
-      <button class="nav-item" onclick="filterCat('sertifikat',this)">
-        <svg viewBox="0 0 24 24"><path d="M12 1l2.753 8.472H23l-7.244 5.263 2.753 8.472L12 18.944l-6.509 4.263 2.753-8.472L2 9.472h8.247L12 1z"/></svg>
-        Sertifikat
-        <span class="nav-count" id="nav-count-sertifikat">0</span>
-      </button>
-      <button class="nav-item" onclick="filterCat('surat-keluar-sekda',this)">
-        <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4.7l-8 5.334L4 8.7V6.297l8 5.333 8-5.333V8.7z"/></svg>
-        Surat Keluar Sekda
-        <span class="nav-count" id="nav-count-surat-keluar-sekda">0</span>
-      </button>
-      <button class="nav-item" onclick="filterCat('surat-keluar-diskop',this)">
-        <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4.7l-8 5.334L4 8.7V6.297l8 5.333 8-5.333V8.7z"/></svg>
-        Surat Keluar Diskop
-        <span class="nav-count" id="nav-count-surat-keluar-diskop">0</span>
-      </button>
-      <button class="nav-item" onclick="filterCat('surat-permohonan-ttd',this)">
-        <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.21a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-        Permohonan Tanda Tangan
-        <span class="nav-count" id="nav-count-surat-permohonan-ttd">0</span>
-      </button>
-      <button class="nav-item" onclick="filterCat('surat-permohonan-konsumsi',this)">
-        <svg viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>
-        Permohonan Konsumsi
-        <span class="nav-count" id="nav-count-surat-permohonan-konsumsi">0</span>
-      </button>
-      <button class="nav-item" onclick="filterCat('surat-undangan',this)">
-        <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19a2 2 0 002 2h14a2 2 0 002-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
-        Surat Undangan
-        <span class="nav-count" id="nav-count-surat-undangan">0</span>
-      </button>
-      <button class="nav-item" onclick="filterCat('surat-tugas-pengawasan',this)">
-        <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8a3 3 0 100 6 3 3 0 000-6z"/></svg>
-        SPT Pengawasan
-        <span class="nav-count" id="nav-count-surat-tugas-pengawasan">0</span>
-      </button>
-      <button class="nav-item" onclick="filterCat('surat-tugas-dinas',this)">
-        <svg viewBox="0 0 24 24"><path d="M21 3L3 10.53v.98l6.84 2.65L12.48 21h.98L21 3z"/></svg>
-        SPT Perjalanan Dinas
-        <span class="nav-count" id="nav-count-surat-tugas-dinas">0</span>
-      </button>
-      <button class="nav-item" onclick="filterCat('surat-tugas-pelatihan',this)">
-        <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>
-        SPT Pelatihan
-        <span class="nav-count" id="nav-count-surat-tugas-pelatihan">0</span>
-      </button>
-      <button class="nav-item" onclick="filterCat('surat-cuti-tahunan',this)">
-        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z"/></svg>
-        Surat Cuti Tahunan
-        <span class="nav-count" id="nav-count-surat-cuti-tahunan">0</span>
-      </button>
-      <button class="nav-item" onclick="filterCat('peraturan',this)">
-        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 17h8v1H8v-1zm0-3h8v1H8v-1zm0-3h5v1H8v-1z" fill="currentColor"/></svg>
-        Peraturan
-        <span class="nav-count" id="nav-count-peraturan">0</span>
-      </button>
-      <button class="nav-item" onclick="filterCat('surat-masuk',this)">
-        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-        Surat Masuk
-        <span class="nav-count" id="nav-count-surat-masuk">0</span>
-      </button>
-      <button class="nav-item" onclick="filterCat('arsip',this)">
-        <svg viewBox="0 0 24 24"><path d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19a2 2 0 002 2h14a2 2 0 002-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5L6.5 12H10v-2h4v2h3.5L12 17.5zM5.12 5l.81-1h12l.94 1H5.12z"/></svg>
-        Arsip
-        <span class="nav-count" id="nav-count-arsip">0</span>
-      </button>
-      <button class="nav-item" onclick="filterCat('lainnya',this)">
-        <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-        Lainnya
-        <span class="nav-count" id="nav-count-lainnya">0</span>
-      </button>
-    </nav>
-  </aside>
-
-  <!-- Sidebar Toggle Button -->
-  <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="Sembunyikan/Tampilkan Sidebar">
-    <svg viewBox="0 0 12 12"><path d="M8 2L4 6l4 4" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </button>
-
-  <!-- Main -->
-  <div class="main">
-    <div class="topbar">
-      <h2 id="page-title">Semua Dokumen</h2>
-      <div class="search-wrap">
-        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-        <input type="text" id="search" placeholder="Cari dokumen..." oninput="renderTable()">
-      </div>
-      <div class="topbar-right">
-        <select class="year-select" id="year-filter" onchange="renderTable()">
-          <option value="">Semua Tahun</option>
-        </select>
-        <button onclick="syncFromDrive()" style="display:flex;align-items:center;gap:5px;padding:8px 12px;background:#1a7a5e;color:white;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;" title="Ambil data terbaru dari Google Drive">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="white"><path d="M17.65 6.35A7.96 7.96 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-          Dari Drive
-        </button>
-        <button onclick="syncToDrive()" style="display:flex;align-items:center;gap:5px;padding:8px 12px;background:#0f3460;color:white;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;" title="Backup semua data ke Google Drive">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="white"><path d="M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
-          Sync ke Drive
-        </button>
-        <button class="btn-add" onclick="openUpload()">
-          <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-          Tambah Dokumen
-        </button>
-        <div id="save-indicator" style="font-size:11px;color:#27ae60;display:flex;align-items:center;gap:4px;white-space:nowrap;opacity:0;transition:opacity .4s">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5.5" fill="#27ae60"/><path d="M3.5 6l2 2 3-3" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Tersimpan
-        </div>
-      </div>
+    <div class="brand-text">
+      <h1>Arsip Surat<br>Digital</h1>
+      <p>Diskopumdag Banyuwangi</p>
     </div>
+  </div>
 
-    <div class="content">
-      <div class="stats-grid">
-        <div class="stat-card accent">
-          <div class="label">Total Dokumen</div>
-          <div class="number" id="s-total">0</div>
-          <div class="sub">Semua kategori</div>
-        </div>
-        <div class="stat-card">
-          <div class="label">Dokumen Bulan Ini</div>
-          <div class="number" id="s-month">0</div>
-          <div class="sub" id="s-month-label">Memuat...</div>
-        </div>
-        <div class="stat-card">
-          <div class="label">Total Kategori</div>
-          <div class="number">13</div>
-          <div class="sub">Jenis surat & arsip</div>
-        </div>
-        <div class="stat-card">
-          <div class="label">Ditampilkan</div>
-          <div class="number" id="s-shown">0</div>
-          <div class="sub">Dokumen saat ini</div>
-        </div>
-      </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Kategori Surat</div>
 
-      <div class="card">
-        <div class="card-head">
-          <div>
-            <h3 id="table-title">Semua Dokumen</h3>
-            <p id="table-sub">Menampilkan seluruh dokumen</p>
-          </div>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th style="width:30%">Nama Dokumen</th>
-              <th style="width:20%">Kategori</th>
-              <th style="width:12%">Tanggal</th>
-              <th style="width:8%">Format</th>
-              <th style="width:8%">Ukuran</th>
-              <th style="width:22%">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-        <div class="pagination">
-          <p id="pagi-info"></p>
-          <div class="page-btns" id="page-btns"></div>
-        </div>
-      </div>
-    </div>
+    <button class="nav-item active" onclick="filterCat('semua',this)">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      Semua Dokumen
+      <span class="nav-count" id="nav-count-semua">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('sertifikat',this)">
+      <svg viewBox="0 0 24 24"><path d="M12 1l2.753 8.472H23l-7.244 5.263 2.753 8.472L12 18.944l-6.509 4.263 2.753-8.472L2 9.472h8.247L12 1z"/></svg>
+      Sertifikat
+      <span class="nav-count" id="nav-count-sertifikat">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('surat-keluar-sekda',this)">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      Surat Keluar Sekda
+      <span class="nav-count" id="nav-count-surat-keluar-sekda">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('surat-keluar-diskop',this)">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      Surat Keluar Diskop
+      <span class="nav-count" id="nav-count-surat-keluar-diskop">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('surat-permohonan-ttd',this)">
+      <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.21a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+      Permohonan Tanda Tangan
+      <span class="nav-count" id="nav-count-surat-permohonan-ttd">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('surat-permohonan-konsumsi',this)">
+      <svg viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg>
+      Permohonan Konsumsi
+      <span class="nav-count" id="nav-count-surat-permohonan-konsumsi">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('surat-undangan',this)">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+      Surat Undangan
+      <span class="nav-count" id="nav-count-surat-undangan">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('surat-tugas-pengawasan',this)">
+      <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8a3 3 0 100 6 3 3 0 000-6z"/></svg>
+      SPT Pengawasan
+      <span class="nav-count" id="nav-count-surat-tugas-pengawasan">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('surat-tugas-dinas',this)">
+      <svg viewBox="0 0 24 24"><path d="M21 3L3 10.53v.98l6.84 2.65L12.48 21h.98L21 3z"/></svg>
+      SPT Perjalanan Dinas
+      <span class="nav-count" id="nav-count-surat-tugas-dinas">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('surat-tugas-pelatihan',this)">
+      <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>
+      SPT Pelatihan
+      <span class="nav-count" id="nav-count-surat-tugas-pelatihan">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('surat-cuti-tahunan',this)">
+      <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+      Surat Cuti Tahunan
+      <span class="nav-count" id="nav-count-surat-cuti-tahunan">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('peraturan',this)">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 7V3.5L18.5 9H13zM8 17h8v-1H8v1zm0-3h8v-1H8v1zm0-3h5v-1H8v1z"/></svg>
+      Peraturan
+      <span class="nav-count" id="nav-count-peraturan">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('surat-masuk',this)">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM4 8l8 5 8-5v2l-8 5-8-5V8z"/></svg>
+      Surat Masuk
+      <span class="nav-count" id="nav-count-surat-masuk">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('arsip-word',this)">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 7V3.5L18.5 9H13zM8.5 13H10l1.5 4.5L13 13h1.5l-2.25 6H11L8.5 13z"/></svg>
+      Arsip Word
+      <span class="nav-count" id="nav-count-arsip-word">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('arsip',this)">
+      <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.87.18-1.3C18 2.12 15.88 0 13.3 0c-1.3 0-2.4.5-3.2 1.3L9 2.4l-1.1-1.1C7.1.5 6 0 4.7 0 2.12 0 0 2.12 0 4.7c0 .43.11.86.18 1.3H0v14h20V6zM13.3 2c1.49 0 2.7 1.21 2.7 2.7 0 .44-.11.87-.28 1.3H8.28C8.11 5.57 8 5.14 8 4.7 8 3.21 9.21 2 10.7 2h2.6zM18 18H2V8h16v10z"/></svg>
+      Arsip
+      <span class="nav-count" id="nav-count-arsip">0</span>
+    </button>
+    <button class="nav-item" onclick="filterCat('lainnya',this)">
+      <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+      Lainnya
+      <span class="nav-count" id="nav-count-lainnya">0</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="btn-kelola" onclick="showToast('Fitur Kelola Kategori segera hadir!')">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41L9.25 5.35c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      Kelola Kategori
+    </button>
   </div>
 </div>
 
-<!-- Preview Modal -->
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title">Dashboard Arsip Surat Digital</div>
+    <div class="topbar-actions">
+      <div class="save-indicator" id="save-indicator">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5.5" fill="#27ae60"/><path d="M3.5 6l2 2 3-3" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Tersimpan
+      </div>
+      <button class="btn-drive" onclick="syncFromDrive()">
+        <svg width="14" height="12" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
+          <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+          <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
+          <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
+          <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+          <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+          <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+        </svg>
+        Dari Drive
+      </button>
+      <button class="btn-sync" onclick="syncToDrive()">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+        Sync ke Drive
+      </button>
+      <button class="btn-tambah" onclick="openUpload()">
+        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        Tambah Dokumen
+      </button>
+    </div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-wrap">
+    <div class="search-inner">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input type="text" id="search" placeholder="Cari judul, nomor surat, pengirim, atau keterangan..." oninput="currentPage=1;renderTable()">
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- KPI -->
+    <div class="kpi-grid">
+      <div class="kpi-card c-green">
+        <div class="kpi-icon-box" style="background:rgba(16,185,129,.15)">
+          <svg viewBox="0 0 24 24" fill="#10b981"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 7V3.5L18.5 9H13zM6 20V4h5v7h7v9H6z"/></svg>
+        </div>
+        <div class="kpi-info">
+          <div class="kpi-label">Total Dokumen</div>
+          <div class="kpi-value" style="color:#059669" id="s-total">0</div>
+          <div class="kpi-sub">Semua dokumen</div>
+        </div>
+        <svg class="kpi-curve" width="72" height="38" viewBox="0 0 72 38">
+          <polyline points="0,32 14,25 28,27 42,16 56,20 72,7" fill="none" stroke="#10b981" stroke-width="2" opacity=".4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="kpi-card c-blue">
+        <div class="kpi-icon-box" style="background:rgba(59,130,246,.15)">
+          <svg viewBox="0 0 24 24" fill="#3b82f6"><path d="M10 3H4a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1V4a1 1 0 00-1-1zm0 10H4a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1v-6a1 1 0 00-1-1zM20 3h-6a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1V4a1 1 0 00-1-1zm0 10h-6a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1v-6a1 1 0 00-1-1z"/></svg>
+        </div>
+        <div class="kpi-info">
+          <div class="kpi-label">Total Kategori</div>
+          <div class="kpi-value" style="color:#2563eb">14</div>
+          <div class="kpi-sub">Semua kategori</div>
+        </div>
+      </div>
+      <div class="kpi-card c-amber">
+        <div class="kpi-icon-box" style="background:rgba(245,158,11,.15)">
+          <svg viewBox="0 0 24 24" fill="#f59e0b"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+        </div>
+        <div class="kpi-info">
+          <div class="kpi-label">Dokumen Bulan Ini</div>
+          <div class="kpi-value" style="color:#d97706" id="s-month">0</div>
+          <div class="kpi-sub" id="s-month-label">Bulan ini</div>
+        </div>
+        <svg class="kpi-curve" width="72" height="38" viewBox="0 0 72 38">
+          <polyline points="0,30 18,24 32,17 46,21 60,12 72,8" fill="none" stroke="#f59e0b" stroke-width="2" opacity=".4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="kpi-card c-purple">
+        <div class="kpi-icon-box" style="background:rgba(139,92,246,.15)">
+          <svg viewBox="0 0 24 24" fill="#8b5cf6"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8a3 3 0 100 6 3 3 0 000-6z"/></svg>
+        </div>
+        <div class="kpi-info">
+          <div class="kpi-label">Ditampilkan</div>
+          <div class="kpi-value" style="color:#7c3aed" id="s-shown">0</div>
+          <div class="kpi-sub">Hasil filter saat ini</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTER ROW -->
+    <div class="filter-row">
+      <div class="filter-group">
+        <div class="filter-label">Rentang Tanggal</div>
+        <div class="date-wrap">
+          <input type="date" id="date-from" onchange="currentPage=1;renderTable()">
+          <span style="color:#94a3b8;font-size:11px">—</span>
+          <input type="date" id="date-to" onchange="currentPage=1;renderTable()">
+          <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+        </div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Format File</div>
+        <select class="sel" id="fmt-filter" onchange="currentPage=1;renderTable()">
+          <option value="">Semua Format</option>
+          <option value="PDF">PDF</option>
+          <option value="DOCX">Word (DOCX)</option>
+          <option value="XLSX">Excel (XLSX)</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Tahun</div>
+        <select class="sel" id="year-filter" onchange="currentPage=1;renderTable()">
+          <option value="">Semua Tahun</option>
+        </select>
+      </div>
+      <button class="btn-reset" onclick="resetFilter()">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.96 7.96 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        Reset Filter
+      </button>
+    </div>
+
+    <!-- TABLE CARD -->
+    <div class="table-card">
+      <div class="table-top">
+        <div class="tbl-left">
+          <span class="tbl-title" id="page-title">Hasil Dokumen</span>
+          <span class="doc-badge" id="table-sub">0 Dokumen</span>
+        </div>
+        <div class="sort-row">
+          Urutkan
+          <select onchange="currentPage=1;renderTable()">
+            <option>Terbaru</option>
+          </select>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Nama Dokumen</th>
+            <th>Kategori</th>
+            <th>Tanggal</th>
+            <th>Format</th>
+            <th>Ukuran</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="pagination">
+        <div class="page-info" id="pagi-info">Menampilkan 0-0 dari 0 dokumen</div>
+        <div class="page-btns" id="page-btns" style="display:none"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALS -->
 <div class="modal-bg" id="modal-preview" onclick="closePrev(event)">
   <div class="modal-preview-full">
     <div class="modal-head">
@@ -461,6 +529,7 @@
           <option value="arsip">Arsip</option>
           <option value="peraturan">Peraturan</option>
           <option value="surat-masuk">Surat Masuk</option>
+          <option value="arsip-word">Arsip Word</option>
           <option value="lainnya">Lainnya</option>
         </select>
       </div>
@@ -514,6 +583,7 @@
           <option value="arsip">Arsip</option>
           <option value="peraturan">Peraturan</option>
           <option value="surat-masuk">Surat Masuk</option>
+          <option value="arsip-word">Arsip Word</option>
           <option value="lainnya">Lainnya</option>
         </select>
       </div>
@@ -529,9 +599,18 @@
   </div>
 </div>
 
+
+
 <div class="toast" id="toast"></div>
 
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <div style="font-size:13px;font-weight:600">Memuat data...</div>
+</div>
+
 <script>
+const PER_PAGE = 15;
+
 const CATS = {
   'semua':'Semua Dokumen',
   'sertifikat':'Sertifikat',
@@ -547,6 +626,7 @@ const CATS = {
   'arsip':'Arsip',
   'peraturan':'Peraturan',
   'surat-masuk':'Surat Masuk',
+  'arsip-word':'Arsip Word',
   'lainnya':'Lainnya'
 };
 
@@ -555,7 +635,7 @@ const BADGE = {
   'surat-permohonan-ttd':'b-purple','surat-permohonan-konsumsi':'b-coral',
   'surat-undangan':'b-pink','surat-tugas-pengawasan':'b-green',
   'surat-tugas-dinas':'b-gray','surat-tugas-pelatihan':'b-teal','surat-cuti-tahunan':'b-amber',
-  'arsip':'b-blue','peraturan':'b-purple','surat-masuk':'b-teal','lainnya':'b-gray'
+  'arsip':'b-blue','peraturan':'b-purple','surat-masuk':'b-teal','arsip-word':'b-blue','lainnya':'b-gray'
 };
 
 // ══════════════════════════════════════════════════
@@ -934,10 +1014,12 @@ function filterCat(cat, btn){
 function getFiltered(){
   const q = document.getElementById('search').value.toLowerCase();
   const yr = document.getElementById('year-filter').value;
+  const fmt = document.getElementById('fmt-filter') ? document.getElementById('fmt-filter').value.toUpperCase() : '';
   return DOCS.filter(d=>{
     if(activeCat!=='semua'&&d.cat!==activeCat)return false;
     if(yr&&!d.date.startsWith(yr))return false;
     if(q&&!d.name.toLowerCase().includes(q))return false;
+    if(fmt&&(d.fmt||'').toUpperCase()!==fmt)return false;
     return true;
   }).sort((a,b)=>{
     // Urutkan berdasarkan tanggal surat: terbaru di atas
@@ -969,61 +1051,83 @@ function updateCounts(){
 }
 
 function renderTable(){
-  const rows = getFiltered();
-  document.getElementById('s-shown').textContent = rows.length;
+  // Apply date range filter
+  const dateFrom = (document.getElementById('date-from')||{}).value||'';
+  const dateTo   = (document.getElementById('date-to')||{}).value||'';
+  let rows = getFiltered();
+  if(dateFrom) rows = rows.filter(d => d.date && d.date >= dateFrom);
+  if(dateTo)   rows = rows.filter(d => d.date && d.date <= dateTo);
+
   const total = rows.length;
   const pages = Math.max(1,Math.ceil(total/PER_PAGE));
   if(currentPage>pages) currentPage=1;
   const start=(currentPage-1)*PER_PAGE;
   const slice=rows.slice(start,start+PER_PAGE);
   const tb=document.getElementById('tbody');
-  document.getElementById('table-sub').textContent = total+' dokumen ditemukan';
-  document.getElementById('pagi-info').textContent = 'Menampilkan '+(total?start+1:0)+'-'+Math.min(start+PER_PAGE,total)+' dari '+total+' dokumen';
+
+  // Update counters
+  const shownEl = document.getElementById('s-shown');
+  const subEl2  = document.getElementById('table-sub');
+  const pagiEl  = document.getElementById('pagi-info');
+  const dispEl  = document.getElementById('s-shown');
+  if(shownEl) shownEl.textContent = total;
+  if(subEl2)  subEl2.textContent  = total+' Dokumen';
+  if(pagiEl)  pagiEl.textContent  = 'Menampilkan '+(total?start+1:0)+'-'+Math.min(start+PER_PAGE,total)+' dari '+total+' dokumen';
 
   if(!slice.length){
-    tb.innerHTML='<tr class="empty-row"><td colspan="6">Tidak ada dokumen ditemukan.</td></tr>';
+    tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:40px 20px;color:#aaa">
+      <svg viewBox="0 0 24 24" style="width:40px;height:40px;fill:#e0e0e0;display:block;margin:0 auto 10px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
+      Tidak ada dokumen ditemukan.</td></tr>`;
   } else {
-    tb.innerHTML=slice.map(d=>`
-      <tr>
+    tb.innerHTML=slice.map((d,i)=>{
+      const fmt    = (d.fmt||'PDF').toUpperCase();
+      const fmtCls = fmt==='DOCX'?'b-blue':fmt==='XLSX'?'b-green':'b-gray';
+      const fmtLbl = fmt==='DOCX'?'Word':fmt==='XLSX'?'Excel':fmt;
+      const driveTag = d.driveFileId
+        ? `<div class="drive-tag"><svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>Tersimpan di Drive</div>`
+        : '';
+      return `<tr>
+        <td class="td-no">${start+i+1}</td>
         <td>
-          <div class="doc-name">
-            <div class="doc-icon ${d.fmt.toLowerCase()}">${d.fmt}</div>
-            <div>
-              <div class="doc-name-text">${d.name}</div>
-              ${d.driveFileId ? '<div style="font-size:10px;color:#0f6e56;margin-top:2px">☁ Tersimpan di Drive</div>' : ''}
-            </div>
+          <div class="doc-cell">
+            <div class="doc-icon ${fmt==='DOCX'?'docx':fmt==='XLSX'?'xlsx':''}">${fmt}</div>
+            <div><div class="doc-name-text">${d.name}</div>${driveTag}</div>
           </div>
         </td>
         <td><span class="badge ${BADGE[d.cat]||'b-gray'}">${CATS[d.cat]||d.cat}</span></td>
-        <td>${d.date}</td>
-        <td><span class="badge b-gray">${d.fmt}</span></td>
-        <td>${d.size}</td>
+        <td class="td-date">${d.date||'—'}</td>
+        <td><span class="badge ${fmtCls}">${fmtLbl}</span></td>
+        <td class="td-size">${d.size||'—'}</td>
         <td>
-          <div class="actions">
-            <button class="btn-sm" onclick='openPrev(${d.id})'>
+          <div class="aksi-row">
+            <button class="aksi-icon view-btn" title="Preview" onclick="openPrev(${d.id})">
               <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8a3 3 0 100 6 3 3 0 000-6z"/></svg>
-              Preview
             </button>
-            <button class="btn-sm btn-edit" onclick='openEdit(${d.id})'>
-              <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.21a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            <button class="aksi-icon dl-btn" title="Unduh" onclick="dlDoc(${d.id})">
+              <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5z"/></svg>
+            </button>
+            <button class="aksi-icon more-btn" title="Lainnya" onclick="toggleMoreMenu(${d.id},this)">
+              <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+            </button>
+          </div>
+          <div class="more-menu" id="more-${d.id}" style="display:none">
+            <button onclick="openEdit(${d.id});closeAllMoreMenus()">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.21a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
               Edit
             </button>
-            <button class="btn-sm btn-dl" onclick='dlDoc(${d.id})'>
-              <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5z"/></svg>
-              Unduh
-            </button>
-            <button class="btn-sm btn-del" onclick='deleteDoc(${d.id})'>
-              <svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zm3-9h2v7H9v-7zm4 0h2v7h-2v-7zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            <button class="menu-danger" onclick="deleteDoc(${d.id});closeAllMoreMenus()">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zm3-9h2v7H9v-7zm4 0h2v7h-2v-7zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/></svg>
               Hapus
             </button>
           </div>
         </td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   }
 
   const pb=document.getElementById('page-btns');
   pb.innerHTML='';
-  if(pages<=1){pb.style.display='none';return}
+  if(pages<=1){pb.style.display='none';return;}
   pb.style.display='flex';
   for(let i=1;i<=pages;i++){
     const b=document.createElement('button');
@@ -1034,6 +1138,26 @@ function renderTable(){
   }
 }
 
+function toggleMoreMenu(id, btn) {
+  closeAllMoreMenus();
+  const menu = document.getElementById('more-'+id);
+  if(menu) menu.style.display = menu.style.display==='none' ? 'block' : 'none';
+}
+function closeAllMoreMenus() {
+  document.querySelectorAll('.more-menu').forEach(m => m.style.display='none');
+}
+function resetFilter() {
+  const df = document.getElementById('date-from');
+  const dt = document.getElementById('date-to');
+  const ff = document.getElementById('fmt-filter');
+  const yr = document.getElementById('year-filter');
+  if(df) df.value='';
+  if(dt) dt.value='';
+  if(ff) ff.value='';
+  if(yr) yr.value='';
+  currentPage=1;
+  renderTable();
+}
 function openPrev(id){
   const d=DOCS.find(x=>x.id===id);
   if(!d)return;
@@ -1352,6 +1476,43 @@ document.addEventListener('keydown', e=>{
     closeEditBtn();
   }
 });
+
+
+// Close more menus when clicking outside
+document.addEventListener('click', function(e) {
+  if(!e.target.closest('.more-btn') && !e.target.closest('.more-menu')) {
+    closeAllMoreMenus();
+  }
+});
+
+// Init auto-load
+(async () => {
+  DOCS = await loadFromDrive();
+  updateCounts();
+  updateYearFilter();
+  renderTable();
+  try {
+    setLoadingState(true);
+    const token = await getGDToken();
+    const res   = await fetch('https://www.googleapis.com/drive/v3/files/' + GD_FILE_ID + '?alt=media', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.ok) {
+      const parsed = await res.json();
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        DOCS = parsed.map(function(d) { return Object.assign({}, d, {file:null}); });
+        localStorage.setItem('arsip_digital_docs_v1', JSON.stringify(DOCS));
+        updateCounts();
+        updateYearFilter();
+        renderTable();
+      }
+    }
+  } catch(e) {
+    console.warn('Auto-load gagal:', e.message);
+  } finally {
+    setLoadingState(false);
+  }
+})();
 </script>
 </body>
 </html>
