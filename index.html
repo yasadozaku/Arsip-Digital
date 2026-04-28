@@ -187,8 +187,7 @@ td{position:relative}
 .toast.show{opacity:1;transform:translateY(0)}
 
 /* LOADING */
-.loading-overlay{display:none;position:fixed;inset:0;background:rgba(15,52,96,.85);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:white}
-.loading-overlay.active{display:flex}
+
 .spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .empty-row td{text-align:center;padding:40px 20px;color:#aaa}
@@ -603,10 +602,7 @@ td{position:relative}
 
 <div class="toast" id="toast"></div>
 
-<div class="loading-overlay" id="loading-overlay">
-  <div class="spinner"></div>
-  <div style="font-size:13px;font-weight:600">Memuat data...</div>
-</div>
+
 
 <script>
 const PER_PAGE = 15;
@@ -958,19 +954,22 @@ function driveViewUrl(driveFileId) {
 }
 
 function setLoadingState(loading) {
+  // Tidak pakai overlay — cukup teks di tbody agar tidak memblokir klik
   const tb = document.getElementById('tbody');
+  if (!tb) return;
   if (loading) {
-    tb.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:#aaa">
-      <div style="display:inline-flex;align-items:center;gap:10px;font-size:14px">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f3460" stroke-width="2" stroke-linecap="round">
+    tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:#aaa">
+      <div style="display:inline-flex;align-items:center;gap:10px;font-size:13px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
           <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83">
             <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
           </path>
         </svg>
-        Memuat data dari Google Drive...
+        Memuat data...
       </div>
     </td></tr>`;
   }
+  // Saat loading=false, renderTable() akan mengisi tbody secara otomatis
 }
 
 const DEMO_DOCS = [
