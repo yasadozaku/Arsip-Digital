@@ -24,9 +24,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .brand-text{opacity:1;transition:opacity .2s ease;overflow:hidden;white-space:nowrap}
 .brand-text h1{font-size:11.5px;font-weight:800;color:white;line-height:1.3;letter-spacing:.01em;text-transform:uppercase}
 .brand-text p{font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;font-weight:500}
-.btn-sidebar-toggle{position:fixed;top:20px;left:260px;width:28px;height:28px;background:#3b82f6;border:none;border-radius:50%;cursor:pointer;z-index:300;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(59,130,246,.5);transition:left .3s cubic-bezier(.4,0,.2,1)}
-.btn-sidebar-toggle svg{width:14px;height:14px;fill:white;transition:transform .3s ease}
-.btn-sidebar-toggle.is-collapsed{left:12px}
+.btn-sidebar-toggle{width:32px;height:32px;background:#3b82f6;border:none;border-radius:8px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(59,130,246,.4);transition:background .2s}
+.btn-sidebar-toggle:hover{background:#2563eb}
+.btn-sidebar-toggle svg{width:15px;height:15px;fill:white;transition:transform .3s ease}
 .btn-sidebar-toggle.is-collapsed svg{transform:rotate(180deg)}
 
 
@@ -223,11 +223,6 @@ td{position:relative}
 </head>
 <body>
 
-<!-- SIDEBAR TOGGLE -->
-<button class="btn-sidebar-toggle" id="btn-sidebar-toggle" onclick="toggleSidebar()" title="Sembunyikan sidebar">
-  <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-</button>
-
 <!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-brand" onclick="filterCat('semua',null)">
@@ -345,6 +340,9 @@ td{position:relative}
 
   <!-- TOPBAR -->
   <div class="topbar">
+    <button class="btn-sidebar-toggle" id="btn-sidebar-toggle" onclick="toggleSidebar()" title="Sembunyikan sidebar">
+      <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+    </button>
     <div class="topbar-title">Dashboard Arsip Surat Digital</div>
     <div class="topbar-actions">
       <div class="save-indicator" id="save-indicator">
@@ -1501,14 +1499,13 @@ document.addEventListener('keydown', e=>{
 
 // ── Sidebar toggle ──
 function toggleSidebar() {
-  var sidebar    = document.getElementById('sidebar');
-  var main       = document.querySelector('.main');
-  var btn        = document.getElementById('btn-sidebar-toggle');
+  var sidebar     = document.getElementById('sidebar');
+  var main        = document.querySelector('.main');
+  var btn         = document.getElementById('btn-sidebar-toggle');
   var isCollapsed = sidebar.classList.toggle('collapsed');
   main.classList.toggle('full', isCollapsed);
   if (btn) {
     btn.classList.toggle('is-collapsed', isCollapsed);
-    btn.style.left = isCollapsed ? '12px' : '260px';
     btn.title = isCollapsed ? 'Tampilkan sidebar' : 'Sembunyikan sidebar';
   }
 }
