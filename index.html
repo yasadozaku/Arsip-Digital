@@ -66,9 +66,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .main.full{margin-left:0}
 
 /* TOPBAR */
-.topbar{background:white;padding:0 20px;height:58px;display:flex;align-items:center;gap:12px;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.05)}
-.topbar-title{font-size:16px;font-weight:800;color:var(--text);letter-spacing:-.02em;flex:1}
-.topbar-actions{display:flex;align-items:center;gap:8px}
+.topbar{background:white;padding:0 20px;height:58px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.topbar-title{font-size:16px;font-weight:800;color:var(--text);letter-spacing:-.02em}
+.topbar-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
 .btn-drive{display:flex;align-items:center;gap:6px;padding:8px 13px;border:1.5px solid var(--border);border-radius:8px;background:white;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;transition:all .15s}
 .btn-drive:hover{border-color:#4285F4;color:#4285F4}
 .btn-sync{display:flex;align-items:center;gap:6px;padding:8px 13px;border:1.5px solid var(--border);border-radius:8px;background:white;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;transition:all .15s}
@@ -236,9 +236,7 @@ td{position:relative}
   <nav class="sidebar-nav">
     <div class="nav-section-header">
       <span class="nav-section-label">Kategori Surat</span>
-      <button class="btn-collapse-nav" id="btn-collapse-nav" onclick="toggleNavItems()" title="Sembunyikan kategori">
-        <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
-      </button>
+
     </div>
     <div class="nav-items-wrap" id="nav-items-wrap">
 
