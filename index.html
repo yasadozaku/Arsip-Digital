@@ -16,6 +16,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 /* ══ SIDEBAR ══ */
 .sidebar{width:248px;background:var(--navy);color:white;display:flex;flex-direction:column;flex-shrink:0;min-height:100vh;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;transition:width .3s cubic-bezier(.4,0,.2,1);overflow-x:hidden}
 .sidebar.collapsed{width:0}
+.sidebar.collapsed .storage-widget{display:none}
 
 /* Brand */
 .sidebar-brand{padding:14px 14px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;cursor:pointer;white-space:nowrap;min-height:74px;overflow:hidden}
@@ -27,7 +28,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .btn-sidebar-toggle{width:34px;height:34px;background:#3b82f6;border:none;border-radius:9px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(59,130,246,.35);transition:background .2s,box-shadow .2s}
 .btn-sidebar-toggle:hover{background:#2563eb;box-shadow:0 4px 14px rgba(59,130,246,.5)}
 .btn-sidebar-toggle svg{width:16px;height:16px;fill:white;transition:transform .3s ease}
-.btn-sidebar-toggle.is-collapsed svg{transform:rotate(180deg)}
 
 
 /* Toggle button inside brand */
@@ -54,6 +54,21 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 
 /* Footer */
 .sidebar-footer{padding:10px 8px 14px;border-top:1px solid rgba(255,255,255,.06);overflow:hidden}
+
+/* Storage widget */
+.storage-widget{padding:10px 10px 12px;border-top:1px solid rgba(255,255,255,.06);margin-bottom:2px}
+.storage-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.storage-label{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.05em;text-transform:uppercase}
+.storage-label svg{width:12px;height:12px;fill:rgba(255,255,255,.4)}
+.storage-pct{font-size:10px;font-weight:700;color:rgba(255,255,255,.6)}
+.storage-bar-wrap{background:rgba(255,255,255,.1);border-radius:20px;height:5px;overflow:hidden;margin-bottom:6px}
+.storage-bar{height:100%;border-radius:20px;background:linear-gradient(90deg,#3b82f6,#60a5fa);transition:width .6s ease}
+.storage-bar.warning{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.storage-bar.danger{background:linear-gradient(90deg,#ef4444,#f87171)}
+.storage-numbers{display:flex;align-items:center;justify-content:space-between}
+.storage-used{font-size:11px;font-weight:700;color:white}
+.storage-total{font-size:10px;color:rgba(255,255,255,.4)}
+.storage-loading{font-size:10px;color:rgba(255,255,255,.35);text-align:center;padding:4px 0}
 .btn-kelola{display:flex;align-items:center;gap:7px;padding:9px 9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:rgba(255,255,255,.65);font-size:11.5px;font-weight:600;cursor:pointer;width:100%;transition:all .15s;white-space:nowrap;overflow:hidden}
 .btn-kelola:hover{background:rgba(255,255,255,.12);color:white}
 .btn-kelola svg{width:13px;height:13px;fill:currentColor;flex-shrink:0}
@@ -323,6 +338,23 @@ td{position:relative}
     </div><!-- end nav-items-wrap -->
   </nav>
 
+  <div class="storage-widget" id="storage-widget">
+    <div class="storage-header">
+      <div class="storage-label">
+        <svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0012 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 000 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
+        Google Drive
+      </div>
+      <span class="storage-pct" id="storage-pct">—</span>
+    </div>
+    <div class="storage-bar-wrap">
+      <div class="storage-bar" id="storage-bar" style="width:0%"></div>
+    </div>
+    <div class="storage-numbers">
+      <span class="storage-used" id="storage-used">Memuat...</span>
+      <span class="storage-total" id="storage-total"></span>
+    </div>
+  </div>
+
   <div class="sidebar-footer">
     <button class="btn-kelola" onclick="showToast('Fitur Kelola Kategori segera hadir!')">
       <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41L9.25 5.35c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.03-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
@@ -337,7 +369,7 @@ td{position:relative}
   <!-- TOPBAR -->
   <div class="topbar">
     <button class="btn-sidebar-toggle" id="btn-sidebar-toggle" onclick="toggleSidebar()" title="Sembunyikan sidebar">
-      <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
     </button>
     <div class="topbar-title">Dashboard Arsip Surat Digital</div>
     <div class="topbar-actions">
@@ -1506,6 +1538,49 @@ function toggleSidebar() {
   }
 }
 
+// ── Fetch Google Drive storage info ──
+async function loadStorageInfo() {
+  try {
+    var token = await getGDToken();
+    var res   = await fetch('https://www.googleapis.com/drive/v3/about?fields=storageQuota', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data  = await res.json();
+    var quota = data.storageQuota;
+
+    var used  = parseInt(quota.usageInDrive || 0);
+    var total = parseInt(quota.limit || 0);
+    var usedAll = parseInt(quota.usage || 0);
+
+    function fmtBytes(b) {
+      if (b >= 1e9) return (b/1e9).toFixed(2) + ' GB';
+      if (b >= 1e6) return (b/1e6).toFixed(1) + ' MB';
+      return (b/1e3).toFixed(0) + ' KB';
+    }
+
+    var pct = total > 0 ? Math.round((usedAll / total) * 100) : 0;
+
+    var barEl   = document.getElementById('storage-bar');
+    var pctEl   = document.getElementById('storage-pct');
+    var usedEl  = document.getElementById('storage-used');
+    var totalEl = document.getElementById('storage-total');
+
+    if (barEl) {
+      barEl.style.width = Math.min(pct, 100) + '%';
+      barEl.className = 'storage-bar' + (pct >= 90 ? ' danger' : pct >= 70 ? ' warning' : '');
+    }
+    if (pctEl)   pctEl.textContent   = pct + '%';
+    if (usedEl)  usedEl.textContent  = fmtBytes(usedAll) + ' dipakai';
+    if (totalEl) totalEl.textContent = 'dari ' + fmtBytes(total);
+
+  } catch(e) {
+    var usedEl = document.getElementById('storage-used');
+    if (usedEl) usedEl.textContent = 'Login untuk cek storage';
+    console.warn('Storage info error:', e.message);
+  }
+}
+
 // Close more menus when clicking outside
 document.addEventListener('click', function(e) {
   if(!e.target.closest('.more-btn') && !e.target.closest('.more-menu')) {
@@ -1534,6 +1609,7 @@ document.addEventListener('click', function(e) {
   // Step 2: Auto-sync dari Drive di background (tidak blokir UI)
   try {
     var token = await getGDToken();
+    loadStorageInfo();
     var res   = await fetch('https://www.googleapis.com/drive/v3/files/' + GD_FILE_ID + '?alt=media', {
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -1546,6 +1622,7 @@ document.addEventListener('click', function(e) {
         updateYearFilter();
         renderTable();
         showToast('✅ Data diperbarui dari Google Drive');
+        loadStorageInfo();
       }
     }
   } catch(e) {
